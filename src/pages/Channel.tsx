@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Hash, Volume2, Video } from 'lucide-react';
+import { MessageList } from '@/components/MessageList';
+import { MessageInput } from '@/components/MessageInput';
+import { useToast } from '@/hooks/use-toast';
 
 type ChannelData = {
   id: string;
@@ -12,22 +16,45 @@ type ChannelData = {
   is_official: boolean;
 };
 
+type Message = {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    full_name: string;
+    username: string;
+    avatar_url: string | null;
+  };
+};
+
 const Channel = () => {
   const { channelId } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [channel, setChannel] = useState<ChannelData | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
   useEffect(() => {
     if (channelId) {
       fetchChannel();
+      fetchMessages();
+      setupRealtimeSubscription();
     }
+
+    return () => {
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
   }, [channelId]);
 
   const fetchChannel = async () => {
     if (!channelId) return;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('channels')
       .select('*')
       .eq('id', channelId)
@@ -39,6 +66,85 @@ const Channel = () => {
     setLoading(false);
   };
 
+  const fetchMessages = async () => {
+    if (!channelId) return;
+
+    const { data } = await supabase
+      .from('messages')
+      .select(`
+        *,
+        profiles (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: true })
+      .limit(100);
+
+    if (data) {
+      setMessages(data as any);
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    if (!channelId) return;
+
+    const channel = supabase
+      .channel(`channel-${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `channel_id=eq.${channelId}`,
+        },
+        async (payload) => {
+          // Fetch the complete message with profile data
+          const { data } = await supabase
+            .from('messages')
+            .select(`
+              *,
+              profiles (
+                full_name,
+                username,
+                avatar_url
+              )
+            `)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (data) {
+            setMessages((prev) => [...prev, data as any]);
+          }
+        }
+      )
+      .subscribe();
+
+    setRealtimeChannel(channel);
+  };
+
+  const handleSendMessage = async (content: string) => {
+    if (!user || !channelId) return;
+
+    const { error } = await supabase.from('messages').insert({
+      channel_id: channelId,
+      user_id: user.id,
+      content,
+    });
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ في إرسال الرسالة',
+        description: error.message,
+      });
+      throw error;
+    }
+  };
+
   const getChannelIcon = () => {
     switch (channel?.type) {
       case 'voice':
@@ -48,6 +154,16 @@ const Channel = () => {
       default:
         return <Hash className="h-5 w-5" />;
     }
+  };
+
+  const canSendMessage = () => {
+    if (!channel) return false;
+    if (channel.is_official) {
+      // Check if user has admin/moderator/publisher role
+      // For now, official channels are read-only for regular users
+      return false;
+    }
+    return true;
   };
 
   if (loading) {
@@ -84,15 +200,18 @@ const Channel = () => {
       </div>
 
       {/* Channel Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {channel.type === 'text' ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              نظام الرسائل قيد التطوير...
-            </p>
-          </div>
-        ) : (
-          <div className="text-center py-12">
+      {channel.type === 'text' ? (
+        <>
+          <MessageList messages={messages} />
+          <MessageInput
+            onSend={handleSendMessage}
+            disabled={!canSendMessage()}
+            isOfficial={channel.is_official}
+          />
+        </>
+      ) : (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
               {getChannelIcon()}
             </div>
@@ -103,8 +222,8 @@ const Channel = () => {
               المكالمات الصوتية والمرئية قيد التطوير...
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

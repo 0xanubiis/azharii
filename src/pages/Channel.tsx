@@ -18,14 +18,24 @@ type ChannelData = {
 
 type Message = {
   id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   user_id: string;
+  reply_to: string | null;
   profiles: {
     full_name: string;
     username: string;
     avatar_url: string | null;
   };
+  replied_message?: {
+    id: string;
+    content: string | null;
+    user_id: string;
+    profiles: {
+      full_name: string;
+      username: string;
+    };
+  } | null;
 };
 
 const Channel = () => {
@@ -36,6 +46,7 @@ const Channel = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; content: string; author: string } | null>(null);
 
   useEffect(() => {
     if (channelId) {
@@ -73,10 +84,19 @@ const Channel = () => {
       .from('messages')
       .select(`
         *,
-        profiles (
+        profiles!messages_user_id_fkey (
           full_name,
           username,
           avatar_url
+        ),
+        replied_message:messages!messages_reply_to_fkey (
+          id,
+          content,
+          user_id,
+          profiles!messages_user_id_fkey (
+            full_name,
+            username
+          )
         )
       `)
       .eq('channel_id', channelId)
@@ -107,10 +127,19 @@ const Channel = () => {
             .from('messages')
             .select(`
               *,
-              profiles (
+              profiles!messages_user_id_fkey (
                 full_name,
                 username,
                 avatar_url
+              ),
+              replied_message:messages!messages_reply_to_fkey (
+                id,
+                content,
+                user_id,
+                profiles!messages_user_id_fkey (
+                  full_name,
+                  username
+                )
               )
             `)
             .eq('id', payload.new.id)
@@ -133,6 +162,7 @@ const Channel = () => {
       channel_id: channelId,
       user_id: user.id,
       content,
+      reply_to: replyTo?.id || null,
     });
 
     if (error) {
@@ -202,11 +232,20 @@ const Channel = () => {
       {/* Channel Content */}
       {channel.type === 'text' ? (
         <>
-          <MessageList messages={messages} />
+          <MessageList 
+            messages={messages} 
+            onReply={(message) => setReplyTo({
+              id: message.id,
+              content: message.content || '',
+              author: message.profiles.full_name
+            })}
+          />
           <MessageInput
             onSend={handleSendMessage}
             disabled={!canSendMessage()}
             isOfficial={channel.is_official}
+            replyTo={replyTo}
+            onCancelReply={() => setReplyTo(null)}
           />
         </>
       ) : (

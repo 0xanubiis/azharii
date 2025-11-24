@@ -5,21 +5,32 @@ import { ar } from 'date-fns/locale';
 
 type Message = {
   id: string;
-  content: string;
+  content: string | null;
   created_at: string;
   user_id: string;
+  reply_to: string | null;
   profiles: {
     full_name: string;
     username: string;
     avatar_url: string | null;
   };
+  replied_message?: {
+    id: string;
+    content: string | null;
+    user_id: string;
+    profiles: {
+      full_name: string;
+      username: string;
+    };
+  } | null;
 };
 
 type MessageListProps = {
   messages: Message[];
+  onReply: (message: Message) => void;
 };
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, onReply }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,7 +61,7 @@ export function MessageList({ messages }: MessageListProps) {
       ) : (
         <>
           {messages.map((message) => (
-            <div key={message.id} className="flex gap-3 hover:bg-accent/5 p-2 rounded-lg transition-colors">
+            <div key={message.id} className="flex gap-3 hover:bg-accent/5 p-2 rounded-lg transition-colors group">
               <Avatar className="h-10 w-10 flex-shrink-0">
                 <AvatarFallback className="bg-primary/20 text-primary">
                   {message.profiles.full_name[0]}
@@ -67,7 +78,23 @@ export function MessageList({ messages }: MessageListProps) {
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
                   </span>
+                  <button
+                    onClick={() => onReply(message)}
+                    className="mr-auto text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    رد
+                  </button>
                 </div>
+                {message.replied_message && (
+                  <div className="bg-muted/30 border-r-2 border-primary pr-2 py-1 mb-2 text-xs">
+                    <span className="text-muted-foreground">
+                      رد على <span className="font-semibold">{message.replied_message.profiles.full_name}</span>:
+                    </span>
+                    <p className="text-muted-foreground line-clamp-1">
+                      {message.replied_message.content}
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm break-words whitespace-pre-wrap">
                   {message.content}
                 </p>

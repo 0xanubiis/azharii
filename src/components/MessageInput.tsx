@@ -7,9 +7,11 @@ type MessageInputProps = {
   onSend: (content: string) => Promise<void>;
   disabled?: boolean;
   isOfficial?: boolean;
+  replyTo: { id: string; content: string; author: string } | null;
+  onCancelReply: () => void;
 };
 
-export function MessageInput({ onSend, disabled, isOfficial }: MessageInputProps) {
+export function MessageInput({ onSend, disabled, isOfficial, replyTo, onCancelReply }: MessageInputProps) {
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -21,6 +23,7 @@ export function MessageInput({ onSend, disabled, isOfficial }: MessageInputProps
     try {
       await onSend(content.trim());
       setContent('');
+      onCancelReply();
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -48,9 +51,28 @@ export function MessageInput({ onSend, disabled, isOfficial }: MessageInputProps
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-border p-4 bg-card">
-      <div className="flex gap-2">
-        <Textarea
+    <div className="border-t border-border bg-card">
+      {replyTo && (
+        <div className="px-4 pt-3 pb-2 bg-muted/30 flex items-center justify-between">
+          <div className="text-sm">
+            <span className="text-muted-foreground">رد على </span>
+            <span className="font-semibold">{replyTo.author}</span>
+            <p className="text-muted-foreground line-clamp-1 text-xs">{replyTo.content}</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onCancelReply}
+            className="h-6 w-6 p-0 text-lg"
+          >
+            ×
+          </Button>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="p-4">
+        <div className="flex gap-2">
+          <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -70,10 +92,11 @@ export function MessageInput({ onSend, disabled, isOfficial }: MessageInputProps
             <Send className="h-5 w-5" />
           )}
         </Button>
-      </div>
-      <p className="text-xs text-muted-foreground mt-2">
-        استخدم Shift+Enter لإضافة سطر جديد
-      </p>
-    </form>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          استخدم Shift+Enter لإضافة سطر جديد
+        </p>
+      </form>
+    </div>
   );
 }

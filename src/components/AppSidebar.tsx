@@ -3,6 +3,8 @@ import { Hash, Volume2, Video, Bell, Users, LogOut, ChevronDown, MessageSquare }
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
+import { Badge } from '@/components/ui/badge';
 import {
   Sidebar,
   SidebarContent,
@@ -41,6 +43,7 @@ export function AppSidebar() {
   const { profile, signOut } = useAuth();
   const { open: sidebarOpen } = useSidebar();
   const navigate = useNavigate();
+  const { unreadCount } = useUnreadNotifications();
   const [channelGroups, setChannelGroups] = useState<ChannelGroup[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [collegeInfo, setCollegeInfo] = useState<{ name: string; department: string }>({
@@ -165,10 +168,18 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate('/notifications')}
-                  className="hover:bg-accent"
+                  className="hover:bg-accent relative"
                 >
                   <Bell className="h-4 w-4" />
                   {sidebarOpen && <span>الإشعارات</span>}
+                  {unreadCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-5 min-w-5 flex items-center justify-center px-1 text-xs"
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Badge>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

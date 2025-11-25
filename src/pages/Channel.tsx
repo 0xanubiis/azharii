@@ -206,7 +206,7 @@ const Channel = () => {
         id: message.id,
         content: message.content || '',
         author: message.profiles.full_name
-      })} className="px-0" />
+      })} />
           <MessageInput onSend={handleSendMessage} disabled={!canSendMessage()} isOfficial={channel.is_official} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
         </> : <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Menu } from 'lucide-react';
 
@@ -32,7 +32,7 @@ const ChannelLayout = () => {
       <div className="min-h-screen flex w-full" dir="rtl">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col min-w-0">
+        <SidebarInset>
           {/* Header */}
           <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 flex-shrink-0">
             <SidebarTrigger className="lg:hidden">
@@ -45,7 +45,7 @@ const ChannelLayout = () => {
           <main className="flex-1 overflow-hidden">
             <Outlet />
           </main>
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

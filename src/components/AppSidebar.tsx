@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Hash, Volume2, Video, Bell, Users, LogOut, ChevronDown } from 'lucide-react';
+import { Hash, Volume2, Video, Bell, Users, LogOut, ChevronDown, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -178,6 +178,15 @@ export function AppSidebar() {
                 >
                   <Users className="h-4 w-4" />
                   {sidebarOpen && <span>الدعوات</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/dm')}
+                  className="hover:bg-accent"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  {sidebarOpen && <span>المحادثات الخاصة</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

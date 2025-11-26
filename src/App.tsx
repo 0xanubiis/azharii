@@ -13,6 +13,7 @@ import Invitations from "./pages/Invitations";
 import DirectMessages from "./pages/DirectMessages";
 import DirectMessageChat from "./pages/DirectMessageChat";
 import Notifications from "./pages/Notifications";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/dm" element={<DirectMessages />} />
             <Route path="/dm/:dmChannelId" element={<DirectMessageChat />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

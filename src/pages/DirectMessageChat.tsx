@@ -101,19 +101,10 @@ const DirectMessageChat = () => {
       .from('dm_messages')
       .select(`
         *,
-        profiles!dm_messages_sender_id_fkey (
+        profiles:sender_id (
           full_name,
           username,
           avatar_url
-        ),
-        replied_message:dm_messages!dm_messages_reply_to_fkey (
-          id,
-          content,
-          sender_id,
-          profiles!dm_messages_sender_id_fkey (
-            full_name,
-            username
-          )
         )
       `)
       .eq('dm_channel_id', dmChannelId)
@@ -121,7 +112,34 @@ const DirectMessageChat = () => {
       .limit(100);
 
     if (data) {
-      setMessages(data as any);
+      // Fetch replied messages separately if needed
+      const messagesWithReplies = await Promise.all(
+        data.map(async (msg: any) => {
+          if (msg.reply_to) {
+            const { data: repliedMsg } = await supabase
+              .from('dm_messages')
+              .select(`
+                id,
+                content,
+                sender_id,
+                profiles:sender_id (
+                  full_name,
+                  username
+                )
+              `)
+              .eq('id', msg.reply_to)
+              .single();
+            
+            return {
+              ...msg,
+              replied_message: repliedMsg as any,
+            };
+          }
+          return { ...msg, replied_message: null };
+        })
+      );
+      
+      setMessages(messagesWithReplies as Message[]);
     }
   };
 
@@ -143,26 +161,41 @@ const DirectMessageChat = () => {
             .from('dm_messages')
             .select(`
               *,
-              profiles!dm_messages_sender_id_fkey (
+              profiles:sender_id (
                 full_name,
                 username,
                 avatar_url
-              ),
-              replied_message:dm_messages!dm_messages_reply_to_fkey (
-                id,
-                content,
-                sender_id,
-                profiles!dm_messages_sender_id_fkey (
-                  full_name,
-                  username
-                )
               )
             `)
             .eq('id', payload.new.id)
             .single();
 
           if (data) {
-            setMessages((prev) => [...prev, data as any]);
+            let messageWithReply: any = { ...data, replied_message: null };
+            
+            // Fetch replied message if exists
+            if ((data as any).reply_to) {
+              const { data: repliedMsg } = await supabase
+                .from('dm_messages')
+                .select(`
+                  id,
+                  content,
+                  sender_id,
+                  profiles:sender_id (
+                    full_name,
+                    username
+                  )
+                `)
+                .eq('id', (data as any).reply_to)
+                .single();
+              
+              messageWithReply = {
+                ...data,
+                replied_message: repliedMsg as any,
+              };
+            }
+            
+            setMessages((prev) => [...prev, messageWithReply as Message]);
           }
         }
       )

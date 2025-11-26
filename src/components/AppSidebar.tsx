@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Hash, Volume2, Video, Bell, Users, LogOut, ChevronDown, MessageSquare } from 'lucide-react';
+import { Hash, Volume2, Video, Bell, Users, LogOut, ChevronDown, MessageSquare, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,10 +40,11 @@ type ChannelGroup = {
 };
 
 export function AppSidebar() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, user } = useAuth();
   const { open: sidebarOpen } = useSidebar();
   const navigate = useNavigate();
   const { unreadCount } = useUnreadNotifications();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [channelGroups, setChannelGroups] = useState<ChannelGroup[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [collegeInfo, setCollegeInfo] = useState<{ name: string; department: string }>({
@@ -54,7 +55,19 @@ export function AppSidebar() {
   useEffect(() => {
     fetchChannels();
     fetchCollegeInfo();
-  }, [profile]);
+    checkAdminStatus();
+  }, [profile, user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin',
+    });
+    
+    setIsAdmin(!!data);
+  };
 
   const fetchCollegeInfo = async () => {
     if (!profile?.college_id || !profile?.department_id) return;
@@ -200,6 +213,17 @@ export function AppSidebar() {
                   {sidebarOpen && <span>المحادثات الخاصة</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate('/admin')}
+                    className="hover:bg-accent"
+                  >
+                    <Shield className="h-4 w-4" />
+                    {sidebarOpen && <span>لوحة التحكم</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

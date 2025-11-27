@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Card } from '@/components/ui/card';
 import { Hash, Volume2, Video } from 'lucide-react';
 import { MessageList } from '@/components/MessageList';
@@ -43,6 +44,7 @@ const Channel = () => {
     user,
     profile
   } = useAuth();
+  const { hasRole } = useUserRoles();
   const {
     toast
   } = useToast();
@@ -170,9 +172,8 @@ const Channel = () => {
   const canSendMessage = () => {
     if (!channel) return false;
     if (channel.is_official) {
-      // Check if user has admin/moderator/publisher role
-      // For now, official channels are read-only for regular users
-      return false;
+      // Only admins and publishers can send messages in official channels
+      return hasRole('admin') || hasRole('publisher');
     }
     return true;
   };

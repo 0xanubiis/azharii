@@ -103,7 +103,12 @@ const Channel = () => {
       ascending: true
     }).limit(100);
     if (data) {
-      setMessages(data as any);
+      // Ensure file_url and file_type are included
+      setMessages(data.map(msg => ({
+        ...msg,
+        file_url: msg.file_url || null,
+        file_type: msg.file_type || null,
+      })) as any);
     }
   };
   const setupRealtimeSubscription = () => {
@@ -140,14 +145,16 @@ const Channel = () => {
     }).subscribe();
     setRealtimeChannel(channel);
   };
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, fileUrl?: string, fileType?: string) => {
     if (!user || !channelId) return;
     const {
       error
     } = await supabase.from('messages').insert({
       channel_id: channelId,
       user_id: user.id,
-      content,
+      content: content || null,
+      file_url: fileUrl || null,
+      file_type: fileType || null,
       reply_to: replyTo?.id || null
     });
     if (error) {
@@ -158,6 +165,7 @@ const Channel = () => {
       });
       throw error;
     }
+    setReplyTo(null);
   };
   const getChannelIcon = () => {
     switch (channel?.type) {
@@ -208,7 +216,14 @@ const Channel = () => {
         content: message.content || '',
         author: message.profiles.full_name
       })} />
-          <MessageInput onSend={handleSendMessage} disabled={!canSendMessage()} isOfficial={channel.is_official} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} />
+          <MessageInput 
+            onSend={handleSendMessage} 
+            disabled={!canSendMessage()} 
+            isOfficial={channel.is_official} 
+            replyTo={replyTo} 
+            onCancelReply={() => setReplyTo(null)}
+            channelId={channelId}
+          />
         </> : <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">

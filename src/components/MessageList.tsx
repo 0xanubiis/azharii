@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { FileText, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type Message = {
   id: string;
@@ -9,6 +11,8 @@ type Message = {
   created_at: string;
   user_id: string;
   reply_to: string | null;
+  file_url?: string | null;
+  file_type?: string | null;
   profiles: {
     full_name: string;
     username: string;
@@ -50,6 +54,56 @@ export function MessageList({ messages, onReply }: MessageListProps) {
     } catch {
       return 'الآن';
     }
+  };
+
+  const renderMentions = (text: string) => {
+    // Replace @username with styled mentions
+    const parts = text.split(/(@\w+)/g);
+    return parts.map((part, index) => {
+      if (part.match(/^@\w+$/)) {
+        return (
+          <span key={index} className="text-primary font-semibold">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  const renderFile = (fileUrl: string, fileType: string) => {
+    const isImage = fileType.startsWith('image/');
+    
+    if (isImage) {
+      return (
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mt-2 max-w-sm"
+        >
+          <img
+            src={fileUrl}
+            alt="مرفق"
+            className="rounded-lg border border-border max-h-64 object-cover hover:opacity-90 transition-opacity"
+          />
+        </a>
+      );
+    }
+
+    return (
+      <div className="mt-2 flex items-center gap-2 p-2 bg-muted rounded-md max-w-sm">
+        <FileText className="h-5 w-5 text-muted-foreground" />
+        <span className="text-sm flex-1 truncate">مرفق</span>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => window.open(fileUrl, '_blank')}
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -95,9 +149,12 @@ export function MessageList({ messages, onReply }: MessageListProps) {
                     </p>
                   </div>
                 )}
-                <p className="text-sm break-words whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                {message.content && (
+                  <p className="text-sm break-words whitespace-pre-wrap">
+                    {renderMentions(message.content)}
+                  </p>
+                )}
+                {message.file_url && message.file_type && renderFile(message.file_url, message.file_type)}
               </div>
             </div>
           ))}

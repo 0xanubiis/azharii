@@ -132,10 +132,17 @@ const DirectMessageChat = () => {
             
             return {
               ...msg,
+              file_url: msg.file_url || null,
+              file_type: msg.file_type || null,
               replied_message: repliedMsg as any,
             };
           }
-          return { ...msg, replied_message: null };
+          return { 
+            ...msg, 
+            file_url: msg.file_url || null,
+            file_type: msg.file_type || null,
+            replied_message: null 
+          };
         })
       );
       
@@ -204,13 +211,15 @@ const DirectMessageChat = () => {
     setRealtimeChannel(channel);
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, fileUrl?: string, fileType?: string) => {
     if (!user || !dmChannelId) return;
 
     const { error } = await supabase.from('dm_messages').insert({
       dm_channel_id: dmChannelId,
       sender_id: user.id,
-      content,
+      content: content || null,
+      file_url: fileUrl || null,
+      file_type: fileType || null,
       reply_to: replyTo?.id || null,
     });
 
@@ -291,6 +300,7 @@ const DirectMessageChat = () => {
         onSend={handleSendMessage}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
+        dmChannelId={dmChannelId}
       />
     </div>
   );

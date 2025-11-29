@@ -27,12 +27,22 @@ const Admin = () => {
       return;
     }
 
+    // Check if user has admin role
     const { data, error } = await supabase.rpc('has_role', {
       _user_id: user.id,
       _role: 'admin',
     });
 
     if (error || !data) {
+      console.error('Admin access denied:', error);
+      navigate('/');
+      return;
+    }
+
+    // Additional check: Only allow specific admin email
+    const { data: authUser } = await supabase.auth.getUser();
+    if (authUser?.user?.email !== 'evidence404@proton.me') {
+      console.error('Only evidence404@proton.me can access admin dashboard');
       navigate('/');
       return;
     }

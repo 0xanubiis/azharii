@@ -84,7 +84,18 @@ export function UserManagement() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-xl font-bold mb-4">إدارة المستخدمين</h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-2">إدارة المستخدمين</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          جميع الطلاب يمكنهم النشر في القنوات العامة. لمنح صلاحية النشر في القنوات الرسمية، قم بتعيين دور "ناشر" للمستخدم.
+        </p>
+        <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
+          <p><strong>مدير:</strong> صلاحيات كاملة للنظام</p>
+          <p><strong>مشرف:</strong> إدارة المحتوى والإشراف</p>
+          <p><strong>ناشر:</strong> يمكنه النشر في القنوات الرسمية</p>
+          <p><strong>مستخدم:</strong> يمكنه النشر في القنوات العامة فقط</p>
+        </div>
+      </div>
       <div className="space-y-4">
         {users.map((user) => (
           <div

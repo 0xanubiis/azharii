@@ -13,13 +13,15 @@ import { SystemStatistics } from '@/components/admin/SystemStatistics';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    checkAdminAccess();
-  }, [user]);
+    if (!authLoading) {
+      checkAdminAccess();
+    }
+  }, [user, authLoading]);
 
   const checkAdminAccess = async () => {
     if (!user) {
@@ -48,10 +50,10 @@ const Admin = () => {
     }
 
     setIsAdmin(true);
-    setLoading(false);
+    setChecking(false);
   };
 
-  if (loading) {
+  if (authLoading || checking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />

@@ -148,7 +148,7 @@ export function MessageInput({ onSend, disabled, isOfficial, replyTo, onCancelRe
     }
   };
 
-  if (disabled || isOfficial) {
+  if (disabled) {
     return (
       <div className="border-t border-border p-4 bg-muted/30">
         <p className="text-sm text-muted-foreground text-center">

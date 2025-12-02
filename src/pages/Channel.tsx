@@ -81,34 +81,56 @@ const Channel = () => {
   };
   const fetchMessages = async () => {
     if (!channelId) return;
-    const {
-      data
-    } = await supabase.from('messages').select(`
+    const { data } = await supabase
+      .from('messages')
+      .select(`
         *,
         profiles!messages_user_id_fkey (
           full_name,
           username,
           avatar_url
-        ),
-        replied_message:messages!messages_reply_to_fkey (
-          id,
-          content,
-          user_id,
-          profiles!messages_user_id_fkey (
-            full_name,
-            username
-          )
         )
-      `).eq('channel_id', channelId).order('created_at', {
-      ascending: true
-    }).limit(100);
+      `)
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: true })
+      .limit(100);
+
     if (data) {
-      // Ensure file_url and file_type are included
-      setMessages(data.map(msg => ({
-        ...msg,
-        file_url: msg.file_url || null,
-        file_type: msg.file_type || null,
-      })) as any);
+      // Fetch replied messages separately
+      const messagesWithReplies = await Promise.all(
+        data.map(async (msg: any) => {
+          if (msg.reply_to) {
+            const { data: repliedMsg } = await supabase
+              .from('messages')
+              .select(`
+                id,
+                content,
+                user_id,
+                profiles!messages_user_id_fkey (
+                  full_name,
+                  username
+                )
+              `)
+              .eq('id', msg.reply_to)
+              .maybeSingle();
+            
+            return {
+              ...msg,
+              file_url: msg.file_url || null,
+              file_type: msg.file_type || null,
+              replied_message: repliedMsg,
+            };
+          }
+          return { 
+            ...msg, 
+            file_url: msg.file_url || null,
+            file_type: msg.file_type || null,
+            replied_message: null 
+          };
+        })
+      );
+      
+      setMessages(messagesWithReplies as Message[]);
     }
   };
   const setupRealtimeSubscription = () => {
@@ -120,27 +142,45 @@ const Channel = () => {
       filter: `channel_id=eq.${channelId}`
     }, async payload => {
       // Fetch the complete message with profile data
-      const {
-        data
-      } = await supabase.from('messages').select(`
-              *,
+      const { data } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          profiles!messages_user_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('id', payload.new.id)
+        .maybeSingle();
+
+      if (data) {
+        let messageWithReply: any = { ...data, replied_message: null };
+        
+        // Fetch replied message if exists
+        if ((data as any).reply_to) {
+          const { data: repliedMsg } = await supabase
+            .from('messages')
+            .select(`
+              id,
+              content,
+              user_id,
               profiles!messages_user_id_fkey (
                 full_name,
-                username,
-                avatar_url
-              ),
-              replied_message:messages!messages_reply_to_fkey (
-                id,
-                content,
-                user_id,
-                profiles!messages_user_id_fkey (
-                  full_name,
-                  username
-                )
+                username
               )
-            `).eq('id', payload.new.id).single();
-      if (data) {
-        setMessages(prev => [...prev, data as any]);
+            `)
+            .eq('id', (data as any).reply_to)
+            .maybeSingle();
+          
+          messageWithReply = {
+            ...data,
+            replied_message: repliedMsg,
+          };
+        }
+        
+        setMessages(prev => [...prev, messageWithReply as Message]);
       }
     }).subscribe();
     setRealtimeChannel(channel);

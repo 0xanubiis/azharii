@@ -98,7 +98,7 @@ const DirectMessages = () => {
           .from('profiles')
           .select('id, full_name, username, avatar_url')
           .eq('id', otherUserId)
-          .single();
+          .maybeSingle();
 
         const { data: lastMessage } = await supabase
           .from('dm_messages')
@@ -106,11 +106,11 @@ const DirectMessages = () => {
           .eq('dm_channel_id', channel.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         return {
           ...channel,
-          other_user: profile!,
+          other_user: profile || { id: otherUserId, full_name: 'مستخدم', username: 'user', avatar_url: null },
           last_message: lastMessage || undefined,
         };
       })

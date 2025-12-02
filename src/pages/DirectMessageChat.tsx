@@ -73,7 +73,7 @@ const DirectMessageChat = () => {
       .from('dm_channels')
       .select('user1_id, user2_id')
       .eq('id', dmChannelId)
-      .single();
+      .maybeSingle();
 
     if (!channel) {
       setLoading(false);
@@ -86,7 +86,7 @@ const DirectMessageChat = () => {
       .from('profiles')
       .select('full_name, username, avatar_url')
       .eq('id', otherUserId)
-      .single();
+      .maybeSingle();
 
     if (profile) {
       setOtherUser(profile);
@@ -128,7 +128,7 @@ const DirectMessageChat = () => {
                 )
               `)
               .eq('id', msg.reply_to)
-              .single();
+              .maybeSingle();
             
             return {
               ...msg,
@@ -175,7 +175,7 @@ const DirectMessageChat = () => {
               )
             `)
             .eq('id', payload.new.id)
-            .single();
+            .maybeSingle();
 
           if (data) {
             let messageWithReply: any = { ...data, replied_message: null };
@@ -194,7 +194,7 @@ const DirectMessageChat = () => {
                   )
                 `)
                 .eq('id', (data as any).reply_to)
-                .single();
+                .maybeSingle();
               
               messageWithReply = {
                 ...data,

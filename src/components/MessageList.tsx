@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, Forward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ForwardMessageDialog } from './ForwardMessageDialog';
 
 type Message = {
   id: string;
@@ -36,6 +37,7 @@ type MessageListProps = {
 
 export function MessageList({ messages, onReply }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -108,6 +110,11 @@ export function MessageList({ messages, onReply }: MessageListProps) {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <ForwardMessageDialog
+        open={!!forwardMessage}
+        onClose={() => setForwardMessage(null)}
+        message={forwardMessage}
+      />
       {messages.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">لا توجد رسائل بعد. كن أول من يبدأ المحادثة!</p>
@@ -132,12 +139,21 @@ export function MessageList({ messages, onReply }: MessageListProps) {
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
                   </span>
-                  <button
-                    onClick={() => onReply(message)}
-                    className="mr-auto text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    رد
-                  </button>
+                  <div className="mr-auto flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => onReply(message)}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      رد
+                    </button>
+                    <button
+                      onClick={() => setForwardMessage(message)}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      <Forward className="h-3 w-3" />
+                      تحويل
+                    </button>
+                  </div>
                 </div>
                 {message.replied_message && (
                   <div className="bg-muted/30 border-r-2 border-primary pr-2 py-1 mb-2 text-xs">

@@ -101,6 +101,17 @@ const Auth = () => {
   };
 
   return (
+    <>
+      <Helmet>
+        <title>تسجيل الدخول وإنشاء حساب | أزهري</title>
+        <meta
+          name="description"
+          content="سجّل دخولك إلى أزهري أو أنشئ حسابك الجديد للانضمام إلى مجتمع طلاب جامعة الأزهر والوصول إلى قنوات كليتك وقسمك."
+        />
+        <link rel="canonical" href="https://azharii.lovable.app/auth" />
+        <meta property="og:title" content="تسجيل الدخول وإنشاء حساب | أزهري" />
+        <meta property="og:url" content="https://azharii.lovable.app/auth" />
+      </Helmet>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/20 p-4 relative overflow-hidden">
       {/* Islamic pattern background */}
       <div 

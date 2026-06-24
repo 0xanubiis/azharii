@@ -86,7 +86,7 @@ export function MessageList({ messages, onReply }: MessageListProps) {
         >
           <img
             src={fileUrl}
-            alt="مرفق"
+            alt="صورة مرفقة من المستخدم"
             className="rounded-lg border border-border max-h-64 object-cover hover:opacity-90 transition-opacity"
           />
         </a>
@@ -95,8 +95,8 @@ export function MessageList({ messages, onReply }: MessageListProps) {
 
     return (
       <div className="mt-2 flex items-center gap-2 p-2 bg-muted rounded-md max-w-sm">
-        <FileText className="h-5 w-5 text-muted-foreground" />
-        <span className="text-sm flex-1 truncate">مرفق</span>
+        <FileText className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        <span className="text-sm flex-1 truncate">ملف مرفق</span>
         <Button
           size="sm"
           variant="ghost"

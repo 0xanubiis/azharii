@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /dm
+Disallow: /notifications
+Disallow: /invitations
+Disallow: /channel
+
+Sitemap: https://azharii.lovable.app/sitemap.xml

@@ -55,79 +55,51 @@ const Admin = () => {
 
   if (authLoading || checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-full">
+        <div className="w-10 h-10 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
+
+  const tabs = [
+    { value: 'statistics', label: 'الإحصائيات', icon: BarChart3 },
+    { value: 'users', label: 'المستخدمين', icon: Users },
+    { value: 'colleges', label: 'الكليات', icon: Building2 },
+    { value: 'channels', label: 'القنوات', icon: Hash },
+    { value: 'messages', label: 'الرسائل', icon: MessageSquare },
+    { value: 'notifications', label: 'الإشعارات', icon: Bell },
+  ];
 
   return (
-    <div className="min-h-screen bg-background p-6" dir="rtl">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="h-full overflow-y-auto bg-background" dir="rtl">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <header className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-3xl font-bold">لوحة التحكم</h1>
-            <p className="text-muted-foreground mt-1">إدارة كاملة للمنصة</p>
+            <h1 className="text-2xl md:text-3xl font-bold">لوحة التحكم</h1>
+            <p className="text-muted-foreground text-sm mt-1">إدارة كاملة للمنصة</p>
           </div>
-        </div>
+        </header>
 
-        {/* Admin Tabs */}
         <Tabs defaultValue="statistics" className="space-y-6">
-          <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-            <TabsTrigger value="statistics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">الإحصائيات</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">المستخدمين</span>
-            </TabsTrigger>
-            <TabsTrigger value="colleges" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">الكليات</span>
-            </TabsTrigger>
-            <TabsTrigger value="channels" className="flex items-center gap-2">
-              <Hash className="h-4 w-4" />
-              <span className="hidden sm:inline">القنوات</span>
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">الرسائل</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">الإشعارات</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-1 px-1">
+            <TabsList className="inline-flex w-auto min-w-full gap-1 p-1">
+              {tabs.map(({ value, label, icon: Icon }) => (
+                <TabsTrigger key={value} value={value} className="flex items-center gap-2 whitespace-nowrap">
+                  <Icon className="h-4 w-4" />
+                  <span>{label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
-          <TabsContent value="statistics">
-            <SystemStatistics />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-
-          <TabsContent value="colleges">
-            <CollegeManagement />
-          </TabsContent>
-
-          <TabsContent value="channels">
-            <ChannelManagement />
-          </TabsContent>
-
-          <TabsContent value="messages">
-            <MessageModeration />
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <NotificationManagement />
-          </TabsContent>
+          <TabsContent value="statistics"><SystemStatistics /></TabsContent>
+          <TabsContent value="users"><UserManagement /></TabsContent>
+          <TabsContent value="colleges"><CollegeManagement /></TabsContent>
+          <TabsContent value="channels"><ChannelManagement /></TabsContent>
+          <TabsContent value="messages"><MessageModeration /></TabsContent>
+          <TabsContent value="notifications"><NotificationManagement /></TabsContent>
         </Tabs>
       </div>
     </div>

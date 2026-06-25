@@ -1,53 +1,78 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import { Menu } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, Loader2 } from 'lucide-react';
 
 const ChannelLayout = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        navigate('/auth');
-      } else if (profile && !profile.onboarding_completed) {
-        navigate('/onboarding');
-      }
+    if (loading) return;
+    if (!user) {
+      navigate('/auth');
+    } else if (profile && !profile.onboarding_completed) {
+      navigate('/onboarding');
     }
   }, [user, profile, loading, navigate]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full" dir="rtl">
-        <AppSidebar />
-        
-        <SidebarInset>
-          {/* Header */}
-          <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 flex-shrink-0">
-            <SidebarTrigger className="lg:hidden">
-              <Menu className="h-5 w-5" />
-            </SidebarTrigger>
-            <h1 className="text-xl font-bold text-primary font-serif">أزهري</h1>
-          </header>
+    <div className="h-screen w-full flex bg-background overflow-hidden" dir="rtl">
+      {/* Desktop / tablet sidebar */}
+      <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 border-l border-sidebar-border bg-sidebar">
+        <AppSidebar onNavigate={() => setMobileOpen(false)} />
+      </aside>
 
-          {/* Main Content - Channel outlet */}
-          <main className="flex-1 overflow-hidden">
-            <Outlet />
-          </main>
-        </SidebarInset>
+      {/* Mobile drawer */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent
+          side="right"
+          className="p-0 w-72 bg-sidebar border-l border-sidebar-border"
+        >
+          <AppSidebar onNavigate={() => setMobileOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      {/* Main column */}
+      <div className="flex-1 min-w-0 flex flex-col bg-background">
+        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-3 md:px-5 gap-3 flex-shrink-0">
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label="فتح القائمة"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <h1 className="text-lg md:text-xl font-bold text-primary font-serif tracking-wide">
+            أزهري
+          </h1>
+          <div className="ms-auto flex items-center gap-1">
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <main className="flex-1 min-h-0 overflow-hidden">
+          <Outlet />
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 

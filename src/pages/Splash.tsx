@@ -10,14 +10,10 @@ const Splash = () => {
   useEffect(() => {
     if (loading) return;
     const timer = setTimeout(() => {
-      if (!user) {
-        navigate('/auth');
-      } else if (profile && !profile.onboarding_completed) {
-        navigate('/onboarding');
-      } else if (profile) {
-        navigate('/home');
-      }
-    }, 2000);
+      if (!user) navigate('/auth');
+      else if (profile && !profile.onboarding_completed) navigate('/onboarding');
+      else if (profile) navigate('/home');
+    }, 1400);
     return () => clearTimeout(timer);
   }, [user, profile, loading, navigate]);
 
@@ -33,26 +29,26 @@ const Splash = () => {
         <meta property="og:title" content="أزهري | منصة التواصل لطلاب جامعة الأزهر" />
         <meta property="og:url" content="https://azharii.lovable.app/" />
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-background to-accent relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden" dir="rtl">
+        <div className="absolute inset-0 gradient-brand opacity-10" aria-hidden="true" />
         <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l4 8-4 8-4-8zM0 30l8-4 8 4-8 4zM60 30l-8-4-8 4 8 4zM30 60l-4-8 4-8 4 8z' fill='%23000' fill-opacity='1'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px',
-          }}
+          className="absolute inset-0 islamic-pattern text-primary opacity-[0.06]"
           aria-hidden="true"
         />
 
-        <div className="text-center z-10 animate-in fade-in duration-1000">
-          <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-4 font-serif">
+        <div className="relative z-10 text-center px-6 animate-in fade-in zoom-in-95 duration-700">
+          <div className="mx-auto mb-8 w-24 h-24 rounded-3xl gradient-brand flex items-center justify-center shadow-elevated">
+            <span className="text-4xl font-bold text-primary-foreground font-serif">أ</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif text-balance">
             أزهري — منصة التواصل لطلاب جامعة الأزهر
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground font-sans mt-2">
+          <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto text-balance">
             تواصل مع زملائك في الكلية والقسم، وشارك ملفاتك الدراسية بسهولة.
           </p>
-          <div className="mt-8">
+          <div className="mt-10 inline-flex">
             <div
-              className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"
+              className="w-10 h-10 border-[3px] border-primary border-t-transparent rounded-full animate-spin"
               role="status"
               aria-label="جارٍ التحميل"
             />

@@ -82,7 +82,7 @@ export function ForwardMessageDialog({ open, onClose, message }: ForwardMessageD
             .from('profiles')
             .select('full_name, username')
             .eq('id', otherUserId)
-            .single();
+            .maybeSingle();
           
           return {
             id: dm.id,

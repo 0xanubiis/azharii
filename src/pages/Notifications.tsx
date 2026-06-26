@@ -109,7 +109,7 @@ const Notifications = () => {
       )
       .subscribe();
 
-    setRealtimeChannel(channel);
+    return channel;
   };
 
   const markAsRead = async (notificationId: string) => {

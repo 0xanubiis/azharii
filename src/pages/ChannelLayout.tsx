@@ -49,17 +49,15 @@ const ChannelLayout = () => {
       {/* Main column */}
       <div className="flex-1 min-w-0 flex flex-col bg-background">
         <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-3 md:px-5 gap-3 flex-shrink-0">
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="فتح القائمة"
-              onClick={() => setMobileOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="فتح القائمة"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <h1 className="text-lg md:text-xl font-bold text-primary font-serif tracking-wide">
             أزهري
           </h1>

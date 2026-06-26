@@ -100,14 +100,7 @@ export function AppSidebar({ onNavigate }: Props) {
     }
     if (departmentChannels) {
       const text = departmentChannels.filter((c) => c.type === 'text');
-      const voice = departmentChannels.filter((c) => c.type === 'voice');
-      const video = departmentChannels.filter((c) => c.type === 'video');
       if (text.length) groups.push({ title: 'القنوات النصية', channels: text as ChannelRow[] });
-      if (voice.length || video.length)
-        groups.push({
-          title: 'الصوت والفيديو',
-          channels: [...voice, ...video] as ChannelRow[],
-        });
     }
     setChannelGroups(groups);
   };

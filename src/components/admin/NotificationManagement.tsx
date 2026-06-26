@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Send } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function NotificationManagement() {
   const [users, setUsers] = useState<any[]>([]);
@@ -97,13 +97,11 @@ export function NotificationManagement() {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">إدارة الإشعارات</h2>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Send className="h-4 w-4 ml-2" />
+          إرسال إشعار
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Send className="h-4 w-4 ml-2" />
-              إرسال إشعار
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>إرسال إشعار جديد</DialogTitle>

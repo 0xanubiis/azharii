@@ -40,15 +40,17 @@ const Notifications = () => {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   useEffect(() => {
+    if (!user) return;
     fetchNotifications();
-    setupRealtimeSubscription();
+    const channel = setupRealtimeSubscription();
 
     return () => {
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+      if (channel) {
+        supabase.removeChannel(channel);
       }
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
     if (!user) return;

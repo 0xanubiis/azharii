@@ -128,13 +128,11 @@ export function ChannelManagement() {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">إدارة القنوات</h2>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="h-4 w-4 ml-2" />
+          إضافة قناة
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 ml-2" />
-              إضافة قناة
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>إضافة قناة جديدة</DialogTitle>

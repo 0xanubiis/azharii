@@ -1,17 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/initials';
+import { Search } from 'lucide-react';
 
 type User = {
   id: string;
   full_name: string;
   username: string;
-  gender: string;
+  gender: 'male' | 'female';
   college_id: string | null;
   department_id: string | null;
   colleges: { name_ar: string } | null;
@@ -19,60 +27,82 @@ type User = {
   user_roles: { role: string }[];
 };
 
+type College = { id: string; name_ar: string };
+type Department = { id: string; name_ar: string; college_id: string };
+
 export function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [users, setUsers] = useState<User[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState('');
+  const [collegeId, setCollegeId] = useState<string>('all');
+  const [departmentId, setDepartmentId] = useState<string>('all');
+  const [gender, setGender] = useState<'all' | 'male' | 'female'>('all');
+  const [role, setRole] = useState<string>('all');
 
   useEffect(() => {
-    fetchUsers();
+    Promise.all([fetchUsers(), fetchColleges(), fetchDepartments()]).finally(() =>
+      setLoading(false),
+    );
   }, []);
 
   const fetchUsers = async () => {
     const { data } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        colleges (name_ar),
-        departments (name_ar),
-        user_roles (role)
-      `)
+      .select(
+        `*, colleges (name_ar), departments (name_ar), user_roles (role)`,
+      )
       .order('created_at', { ascending: false });
+    if (data) setUsers(data as any);
+  };
 
-    if (data) {
-      setUsers(data as any);
-    }
-    setLoading(false);
+  const fetchColleges = async () => {
+    const { data } = await supabase.from('colleges').select('id, name_ar').order('name_ar');
+    if (data) setColleges(data);
+  };
+
+  const fetchDepartments = async () => {
+    const { data } = await supabase
+      .from('departments')
+      .select('id, name_ar, college_id')
+      .order('name_ar');
+    if (data) setDepartments(data);
   };
 
   const updateUserRole = async (userId: string, newRole: string) => {
-    // Remove existing roles
     await supabase.from('user_roles').delete().eq('user_id', userId);
-
-    // Add new role
-    const roleData = {
+    const { error } = await supabase.from('user_roles').insert({
       user_id: userId,
       role: newRole as 'admin' | 'moderator' | 'publisher' | 'user',
-    };
-
-    const { error } = await supabase.from('user_roles').insert(roleData);
-
+    });
     if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'خطأ',
-        description: 'فشل تحديث الصلاحية',
-      });
+      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحديث الصلاحية' });
       return;
     }
-
-    toast({
-      title: 'تم التحديث',
-      description: 'تم تحديث صلاحية المستخدم بنجاح',
-    });
-
+    toast({ title: 'تم التحديث', description: 'تم تحديث صلاحية المستخدم بنجاح' });
     fetchUsers();
   };
+
+  const visibleDepartments = useMemo(
+    () => (collegeId === 'all' ? departments : departments.filter((d) => d.college_id === collegeId)),
+    [departments, collegeId],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      if (collegeId !== 'all' && u.college_id !== collegeId) return false;
+      if (departmentId !== 'all' && u.department_id !== departmentId) return false;
+      if (gender !== 'all' && u.gender !== gender) return false;
+      if (role !== 'all' && (u.user_roles[0]?.role || 'user') !== role) return false;
+      if (q && !(u.full_name?.toLowerCase().includes(q) || u.username?.toLowerCase().includes(q)))
+        return false;
+      return true;
+    });
+  }, [users, search, collegeId, departmentId, gender, role]);
 
   if (loading) {
     return (
@@ -83,49 +113,93 @@ export function UserManagement() {
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 md:p-6">
       <div className="mb-6">
         <h2 className="text-xl font-bold mb-2">إدارة المستخدمين</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          جميع الطلاب يمكنهم النشر في القنوات العامة. لمنح صلاحية النشر في القنوات الرسمية، قم بتعيين دور "ناشر" للمستخدم.
+        <p className="text-sm text-muted-foreground">
+          فلتر المستخدمين حسب الكلية، القسم، والنوع — ثم عيّن الصلاحية المناسبة.
         </p>
-        <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-          <p><strong>مدير:</strong> صلاحيات كاملة للنظام</p>
-          <p><strong>مشرف:</strong> إدارة المحتوى والإشراف</p>
-          <p><strong>ناشر:</strong> يمكنه النشر في القنوات الرسمية</p>
-          <p><strong>مستخدم:</strong> يمكنه النشر في القنوات العامة فقط</p>
-        </div>
       </div>
-      <div className="space-y-4">
-        {users.map((user) => (
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-4">
+        <div className="relative sm:col-span-2 lg:col-span-1">
+          <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="بحث بالاسم..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pr-8"
+          />
+        </div>
+        <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setDepartmentId('all'); }}>
+          <SelectTrigger><SelectValue placeholder="الكلية" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">كل الكليات</SelectItem>
+            {colleges.map((c) => <SelectItem key={c.id} value={c.id}>{c.name_ar}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={departmentId} onValueChange={setDepartmentId}>
+          <SelectTrigger><SelectValue placeholder="القسم" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">كل الأقسام</SelectItem>
+            {visibleDepartments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name_ar}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={gender} onValueChange={(v: any) => setGender(v)}>
+          <SelectTrigger><SelectValue placeholder="النوع" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">الكل</SelectItem>
+            <SelectItem value="male">طلاب</SelectItem>
+            <SelectItem value="female">طالبات</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger><SelectValue placeholder="الصلاحية" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">كل الصلاحيات</SelectItem>
+            <SelectItem value="admin">مدير</SelectItem>
+            <SelectItem value="moderator">مشرف</SelectItem>
+            <SelectItem value="publisher">ناشر</SelectItem>
+            <SelectItem value="user">مستخدم</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="text-xs text-muted-foreground mb-3">إجمالي: {filtered.length} مستخدم</p>
+
+      <div className="space-y-3">
+        {filtered.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">لا يوجد مستخدمون مطابقون.</p>
+        )}
+        {filtered.map((u) => (
           <div
-            key={user.id}
-            className="flex items-center justify-between p-4 border rounded-lg"
+            key={u.id}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg"
           >
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <Avatar>
-                <AvatarFallback>{user.full_name[0]}</AvatarFallback>
+                <AvatarFallback className="bg-primary/15 text-primary">
+                  {getInitials(u.full_name)}
+                </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <p className="font-semibold">{user.full_name}</p>
-                <p className="text-sm text-muted-foreground">@{user.username}</p>
-                <div className="flex gap-2 mt-1">
-                  {user.colleges && (
-                    <Badge variant="outline">{user.colleges.name_ar}</Badge>
-                  )}
-                  {user.departments && (
-                    <Badge variant="outline">{user.departments.name_ar}</Badge>
-                  )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{u.full_name}</p>
+                <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <Badge variant={u.gender === 'female' ? 'secondary' : 'outline'}>
+                    {u.gender === 'female' ? 'طالبة' : 'طالب'}
+                  </Badge>
+                  {u.colleges && <Badge variant="outline">{u.colleges.name_ar}</Badge>}
+                  {u.departments && <Badge variant="outline">{u.departments.name_ar}</Badge>}
                 </div>
               </div>
             </div>
             <Select
-              value={user.user_roles[0]?.role || 'user'}
-              onValueChange={(value) => updateUserRole(user.id, value)}
+              value={u.user_roles[0]?.role || 'user'}
+              onValueChange={(value) => updateUserRole(u.id, value)}
             >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">مدير</SelectItem>
                 <SelectItem value="moderator">مشرف</SelectItem>

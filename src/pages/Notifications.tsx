@@ -69,10 +69,10 @@ const Notifications = () => {
   };
 
   const setupRealtimeSubscription = () => {
-    if (!user) return;
+    if (!user) return null;
 
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         {

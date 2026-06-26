@@ -36,19 +36,21 @@ const Notifications = () => {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   useEffect(() => {
+    if (!user) return;
     fetchNotifications();
-    setupRealtimeSubscription();
+    const channel = setupRealtimeSubscription();
 
     return () => {
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+      if (channel) {
+        supabase.removeChannel(channel);
       }
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -67,10 +69,10 @@ const Notifications = () => {
   };
 
   const setupRealtimeSubscription = () => {
-    if (!user) return;
+    if (!user) return null;
 
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -107,7 +109,7 @@ const Notifications = () => {
       )
       .subscribe();
 
-    setRealtimeChannel(channel);
+    return channel;
   };
 
   const markAsRead = async (notificationId: string) => {

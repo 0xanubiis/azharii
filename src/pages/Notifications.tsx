@@ -36,7 +36,7 @@ const Notifications = () => {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   useEffect(() => {

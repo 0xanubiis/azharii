@@ -179,19 +179,19 @@ export default function Invitations() {
 
 
         {/* Search Section */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <Card className="p-4 md:p-6 mb-6">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
             <Search className="h-5 w-5" />
             البحث عن مستخدمين
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="ابحث باسم المستخدم..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
             />
-            <Button onClick={searchUsers} disabled={loading}>
+            <Button onClick={searchUsers} disabled={loading} className="sm:w-auto">
               بحث
             </Button>
           </div>
@@ -201,21 +201,22 @@ export default function Invitations() {
               {searchResults.map((profile) => (
                 <div
                   key={profile.id}
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/30 rounded-lg"
                 >
-                  <div className="flex items-center gap-3">
-                    <Avatar>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="flex-shrink-0">
                       <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback>{profile.full_name[0]}</AvatarFallback>
+                      <AvatarFallback>{profile.full_name?.[0]}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-semibold">{profile.full_name}</p>
-                      <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{profile.full_name}</p>
+                      <p className="text-sm text-muted-foreground truncate">@{profile.username}</p>
                     </div>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => sendInvitation(profile.id)}
+                    className="w-full sm:w-auto"
                   >
                     <UserPlus className="h-4 w-4 ml-2" />
                     إرسال دعوة
@@ -241,17 +242,17 @@ export default function Invitations() {
             ) : (
               receivedInvitations.map((invitation) => (
                 <Card key={invitation.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar className="flex-shrink-0">
                         <AvatarImage src={invitation.sender_profile?.avatar_url || undefined} />
                         <AvatarFallback>
-                          {invitation.sender_profile?.full_name[0]}
+                          {invitation.sender_profile?.full_name?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-semibold">{invitation.sender_profile?.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{invitation.sender_profile?.full_name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           @{invitation.sender_profile?.username}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -260,10 +261,11 @@ export default function Invitations() {
                       </div>
                     </div>
                     {invitation.status === 'pending' && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 sm:flex-shrink-0">
                         <Button
                           size="sm"
                           variant="default"
+                          className="flex-1 sm:flex-initial"
                           onClick={() => respondToInvitation(invitation.id, 'accepted')}
                         >
                           <Check className="h-4 w-4 ml-2" />
@@ -272,6 +274,7 @@ export default function Invitations() {
                         <Button
                           size="sm"
                           variant="destructive"
+                          className="flex-1 sm:flex-initial"
                           onClick={() => respondToInvitation(invitation.id, 'rejected')}
                         >
                           <X className="h-4 w-4 ml-2" />
@@ -293,23 +296,21 @@ export default function Invitations() {
             ) : (
               sentInvitations.map((invitation) => (
                 <Card key={invitation.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={invitation.receiver_profile?.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {invitation.receiver_profile?.full_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold">{invitation.receiver_profile?.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          @{invitation.receiver_profile?.username}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          الحالة: {invitation.status === 'pending' ? 'قيد الانتظار' : invitation.status === 'accepted' ? 'مقبولة' : 'مرفوضة'}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="flex-shrink-0">
+                      <AvatarImage src={invitation.receiver_profile?.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {invitation.receiver_profile?.full_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{invitation.receiver_profile?.full_name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        @{invitation.receiver_profile?.username}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        الحالة: {invitation.status === 'pending' ? 'قيد الانتظار' : invitation.status === 'accepted' ? 'مقبولة' : 'مرفوضة'}
+                      </p>
                     </div>
                   </div>
                 </Card>

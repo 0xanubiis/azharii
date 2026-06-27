@@ -286,8 +286,8 @@ function MessageRow({
         {message.file_url && message.file_type && renderFile(message.file_url, message.file_type)}
       </div>
 
-      {/* Hover action bar */}
-      <div className="absolute -top-3 left-3 hidden group-hover:flex items-center gap-0.5 bg-popover border border-border rounded-md shadow-elevated p-0.5 z-10">
+      {/* Action bar — always visible on touch (mobile), hover-only on desktop */}
+      <div className="absolute -top-3 left-2 md:left-3 flex md:hidden group-hover:md:flex items-center gap-0.5 bg-popover border border-border rounded-md shadow-elevated p-0.5 z-10 opacity-80 md:opacity-100">
         <Button
           size="icon"
           variant="ghost"

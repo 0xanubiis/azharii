@@ -40,7 +40,7 @@ const ChannelLayout = () => {
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="right"
-          className="p-0 w-72 bg-sidebar border-l border-sidebar-border"
+          className="p-0 w-[85vw] max-w-[320px] bg-sidebar border-l border-sidebar-border"
         >
           <AppSidebar onNavigate={() => setMobileOpen(false)} />
         </SheetContent>

@@ -67,48 +67,57 @@ const DirectMessageChat = () => {
 
   const fetchDMChannel = async () => {
     if (!dmChannelId || !user) return;
-    const { data: channel } = await supabase
-      .from('dm_channels')
-      .select('user1_id, user2_id')
-      .eq('id', dmChannelId)
-      .maybeSingle();
-    if (!channel) {
+    try {
+      const { data: channel } = await supabase
+        .from('dm_channels')
+        .select('user1_id, user2_id')
+        .eq('id', dmChannelId)
+        .maybeSingle();
+      if (!channel) {
+        setLoading(false);
+        return;
+      }
+      const otherUserId = channel.user1_id === user.id ? channel.user2_id : channel.user1_id;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, username, avatar_url')
+        .eq('id', otherUserId)
+        .maybeSingle();
+      if (profile) setOtherUser(profile);
+    } catch (error) {
+      console.error('Error fetching DM channel:', error);
+    } finally {
       setLoading(false);
-      return;
     }
-    const otherUserId = channel.user1_id === user.id ? channel.user2_id : channel.user1_id;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, username, avatar_url')
-      .eq('id', otherUserId)
-      .maybeSingle();
-    if (profile) setOtherUser(profile);
-    setLoading(false);
   };
 
   const fetchMessages = async () => {
     if (!dmChannelId) return;
-    const { data } = await supabase
-      .from('dm_messages')
-      .select(`*, profiles:sender_id ( full_name, username, avatar_url )`)
-      .eq('dm_channel_id', dmChannelId)
-      .order('created_at', { ascending: true })
-      .limit(100);
-    if (!data) return;
-    const withReplies = await Promise.all(
-      data.map(async (msg: any) => {
-        if (msg.reply_to) {
-          const { data: repliedMsg } = await supabase
-            .from('dm_messages')
-            .select(`id, content, sender_id, profiles:sender_id ( full_name, username )`)
-            .eq('id', msg.reply_to)
-            .maybeSingle();
-          return { ...msg, replied_message: repliedMsg as any };
-        }
-        return { ...msg, replied_message: null };
-      }),
-    );
-    setMessages(withReplies as Message[]);
+    try {
+      const { data } = await supabase
+        .from('dm_messages')
+        .select(`*, profiles:sender_id ( full_name, username, avatar_url )`)
+        .eq('dm_channel_id', dmChannelId)
+        .order('created_at', { ascending: true })
+        .limit(100);
+      if (!data) return;
+      const withReplies = await Promise.all(
+        data.map(async (msg: any) => {
+          if (msg.reply_to) {
+            const { data: repliedMsg } = await supabase
+              .from('dm_messages')
+              .select(`id, content, sender_id, profiles:sender_id ( full_name, username )`)
+              .eq('id', msg.reply_to)
+              .maybeSingle();
+            return { ...msg, replied_message: repliedMsg as any };
+          }
+          return { ...msg, replied_message: null };
+        }),
+      );
+      setMessages(withReplies as Message[]);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
   };
 
   const setupRealtimeSubscription = () => {

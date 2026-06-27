@@ -49,59 +49,68 @@ const DirectMessages = () => {
 
   const fetchConnections = async () => {
     if (!user) return;
-    const { data: invitations } = await supabase
-      .from('invitations')
-      .select('sender_id, receiver_id')
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .eq('status', 'accepted');
-    if (!invitations) return;
-    const userIds = new Set<string>();
-    invitations.forEach((inv) => {
-      if (inv.sender_id !== user.id) userIds.add(inv.sender_id);
-      if (inv.receiver_id !== user.id) userIds.add(inv.receiver_id);
-    });
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url')
-      .in('id', Array.from(userIds));
-    if (profiles) setConnections(profiles);
+    try {
+      const { data: invitations } = await supabase
+        .from('invitations')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .eq('status', 'accepted');
+      if (!invitations) return;
+      const userIds = new Set<string>();
+      invitations.forEach((inv) => {
+        if (inv.sender_id !== user.id) userIds.add(inv.sender_id);
+        if (inv.receiver_id !== user.id) userIds.add(inv.receiver_id);
+      });
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, avatar_url')
+        .in('id', Array.from(userIds));
+      if (profiles) setConnections(profiles);
+    } catch (error) {
+      console.error('Error fetching connections:', error);
+    }
   };
 
   const fetchDMChannels = async () => {
     if (!user) return;
-    const { data: channels } = await supabase
-      .from('dm_channels')
-      .select('*')
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-    if (!channels) {
+    try {
+      const { data: channels } = await supabase
+        .from('dm_channels')
+        .select('*')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      if (!channels) {
+        setLoading(false);
+        return;
+      }
+      const channelsWithData = await Promise.all(
+        channels.map(async (channel) => {
+          const otherUserId = channel.user1_id === user.id ? channel.user2_id : channel.user1_id;
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, full_name, username, avatar_url')
+            .eq('id', otherUserId)
+            .maybeSingle();
+          const { data: lastMessage } = await supabase
+            .from('dm_messages')
+            .select('content, created_at')
+            .eq('dm_channel_id', channel.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return {
+            ...channel,
+            other_user:
+              profile || { id: otherUserId, full_name: 'مستخدم', username: 'user', avatar_url: null },
+            last_message: lastMessage || undefined,
+          };
+        }),
+      );
+      setDmChannels(channelsWithData);
+    } catch (error) {
+      console.error('Error fetching DM channels:', error);
+    } finally {
       setLoading(false);
-      return;
     }
-    const channelsWithData = await Promise.all(
-      channels.map(async (channel) => {
-        const otherUserId = channel.user1_id === user.id ? channel.user2_id : channel.user1_id;
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .eq('id', otherUserId)
-          .maybeSingle();
-        const { data: lastMessage } = await supabase
-          .from('dm_messages')
-          .select('content, created_at')
-          .eq('dm_channel_id', channel.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        return {
-          ...channel,
-          other_user:
-            profile || { id: otherUserId, full_name: 'مستخدم', username: 'user', avatar_url: null },
-          last_message: lastMessage || undefined,
-        };
-      }),
-    );
-    setDmChannels(channelsWithData);
-    setLoading(false);
   };
 
   const startDM = async (userId: string) => {

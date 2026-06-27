@@ -55,17 +55,22 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
 
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    try {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-    if (data) {
-      setNotifications(data);
+      if (data) {
+        setNotifications(data);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const setupRealtimeSubscription = () => {

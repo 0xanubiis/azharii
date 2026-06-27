@@ -50,13 +50,23 @@ export function UserManagement() {
   }, []);
 
   const fetchUsers = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select(
-        `*, colleges (name_ar), departments (name_ar), user_roles (role)`,
-      )
-      .order('created_at', { ascending: false });
-    if (data) setUsers(data as any);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(
+          `*, colleges (name_ar), departments (name_ar), user_roles (role)`,
+        )
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error fetching users:', error);
+        toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });
+        return;
+      }
+      if (data) setUsers(data as any);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });
+    }
   };
 
   const fetchColleges = async () => {

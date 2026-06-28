@@ -9,11 +9,14 @@ const Splash = () => {
 
   useEffect(() => {
     if (loading) return;
+    // If we already know the user, redirect immediately to avoid a blank/splash flash
+    // on tab refocus or back-navigation.
+    const delay = user && profile ? 0 : 600;
     const timer = setTimeout(() => {
-      if (!user) navigate('/auth');
-      else if (profile && !profile.onboarding_completed) navigate('/onboarding');
-      else if (profile) navigate('/home');
-    }, 1400);
+      if (!user) navigate('/auth', { replace: true });
+      else if (profile && !profile.onboarding_completed) navigate('/onboarding', { replace: true });
+      else if (profile) navigate('/home', { replace: true });
+    }, delay);
     return () => clearTimeout(timer);
   }, [user, profile, loading, navigate]);
 

@@ -49,7 +49,7 @@ const DirectMessageChat = () => {
   );
 
   useEffect(() => {
-    if (!dmChannelId) return;
+    if (!dmChannelId || !user) return;
     setLoading(true);
     setMessages([]);
     setOtherUser(null);
@@ -63,7 +63,7 @@ const DirectMessageChat = () => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dmChannelId]);
+  }, [dmChannelId, user?.id]);
 
   const fetchDMChannel = async () => {
     if (!dmChannelId || !user) return;

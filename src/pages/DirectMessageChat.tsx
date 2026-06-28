@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { markDMChannelSeen } from '@/hooks/useUnreadDMs';
 import { MessageList } from '@/components/MessageList';
 import { MessageInput } from '@/components/MessageInput';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -56,11 +58,13 @@ const DirectMessageChat = () => {
     fetchDMChannel();
     fetchMessages();
     setupRealtimeSubscription();
+    markDMChannelSeen(user.id, dmChannelId);
     return () => {
       if (realtimeRef.current) {
         supabase.removeChannel(realtimeRef.current);
         realtimeRef.current = null;
       }
+      if (user && dmChannelId) markDMChannelSeen(user.id, dmChannelId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dmChannelId, user?.id]);
@@ -151,6 +155,7 @@ const DirectMessageChat = () => {
           setMessages((prev) =>
             prev.some((m) => m.id === withReply.id) ? prev : [...prev, withReply as Message],
           );
+          if (user && dmChannelId) markDMChannelSeen(user.id, dmChannelId);
         },
       )
       .subscribe();
@@ -180,11 +185,25 @@ const DirectMessageChat = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+      <div className="flex flex-col h-full" dir="rtl">
+        <div className="border-b border-border bg-card/80 px-3 md:px-6 py-3 flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="flex-1 p-4 space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={`flex ${i % 2 ? 'justify-start' : 'justify-end'}`}>
+              <Skeleton className="h-12 w-2/3 max-w-sm rounded-2xl" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
+
 
   if (!otherUser) {
     return (

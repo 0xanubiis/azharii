@@ -42,10 +42,11 @@ const DirectMessages = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     fetchConnections();
     fetchDMChannels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   const fetchConnections = async () => {
     if (!user) return;

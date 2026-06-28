@@ -67,13 +67,18 @@ const Channel = () => {
 
   const fetchChannel = async () => {
     if (!channelId) return;
-    const { data } = await supabase
-      .from('channels')
-      .select('*')
-      .eq('id', channelId)
-      .maybeSingle();
-    if (data) setChannel(data as ChannelData);
-    setLoading(false);
+    try {
+      const { data } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('id', channelId)
+        .maybeSingle();
+      if (data) setChannel(data as ChannelData);
+    } catch (e) {
+      console.error('Error fetching channel:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchMessages = async () => {

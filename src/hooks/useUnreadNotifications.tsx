@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 
 export const useUnreadNotifications = () => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -14,33 +12,22 @@ export const useUnreadNotifications = () => {
       return;
     }
 
-    fetchUnreadCount();
-    setupRealtimeSubscription();
+    let cancelled = false;
 
-    return () => {
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
-      }
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
+      if (!cancelled) setUnreadCount(count || 0);
     };
-  }, [user]);
 
-  const fetchUnreadCount = async () => {
-    if (!user) return;
-
-    const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
-
-    setUnreadCount(count || 0);
-  };
-
-  const setupRealtimeSubscription = () => {
-    if (!user) return;
+    fetchUnreadCount();
 
     const channel = supabase
-      .channel('notification-count')
+      .channel(`notification-count-${user.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -55,8 +42,11 @@ export const useUnreadNotifications = () => {
       )
       .subscribe();
 
-    setRealtimeChannel(channel);
-  };
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   return { unreadCount };
 };

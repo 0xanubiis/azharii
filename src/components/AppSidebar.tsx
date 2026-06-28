@@ -16,6 +16,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
+import { useUnreadDMs } from '@/hooks/useUnreadDMs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export function AppSidebar({ onNavigate }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { unreadCount } = useUnreadNotifications();
+  const { unreadCount: unreadDMs } = useUnreadDMs();
   const [isAdmin, setIsAdmin] = useState(false);
   const [channelGroups, setChannelGroups] = useState<ChannelGroup[]>([]);
   const [collegeInfo, setCollegeInfo] = useState({ name: '', department: '' });
@@ -122,7 +124,7 @@ export function AppSidebar({ onNavigate }: Props) {
     { path: '/home', label: 'الرئيسية', icon: HomeIcon },
     { path: '/notifications', label: 'الإشعارات', icon: Bell, badge: unreadCount },
     { path: '/invitations', label: 'الدعوات', icon: Users },
-    { path: '/dm', label: 'المحادثات الخاصة', icon: MessageSquare },
+    { path: '/dm', label: 'المحادثات الخاصة', icon: MessageSquare, badge: unreadDMs },
     ...(isAdmin ? [{ path: '/admin', label: 'لوحة التحكم', icon: Shield }] : []),
   ];
 

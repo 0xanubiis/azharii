@@ -110,7 +110,7 @@ export function UserManagement() {
   };
 
   const patchProfile = async (userId: string, patch: Record<string, any>, successMsg: string) => {
-    const { error } = await supabase.from('profiles').update(patch).eq('id', userId);
+    const { error } = await (supabase.from('profiles') as any).update(patch).eq('id', userId);
     if (error) {
       toast({ variant: 'destructive', title: 'خطأ', description: error.message });
       return;

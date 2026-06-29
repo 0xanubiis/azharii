@@ -12,8 +12,17 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/lib/initials';
-import { Search } from 'lucide-react';
+import { Search, Ban, LogOut, Clock, ShieldCheck, MoreVertical } from 'lucide-react';
 
 type User = {
   id: string;

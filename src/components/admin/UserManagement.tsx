@@ -31,6 +31,10 @@ type User = {
   gender: 'male' | 'female';
   college_id: string | null;
   department_id: string | null;
+  banned_at: string | null;
+  ban_reason: string | null;
+  timeout_until: string | null;
+  kicked_at: string | null;
   colleges: { name_ar: string } | null;
   departments: { name_ar: string } | null;
   user_roles: { role: string }[];

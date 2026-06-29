@@ -256,21 +256,70 @@ export function UserManagement() {
                   </Badge>
                   {u.colleges && <Badge variant="outline">{u.colleges.name_ar}</Badge>}
                   {u.departments && <Badge variant="outline">{u.departments.name_ar}</Badge>}
+                  {u.banned_at && (
+                    <Badge variant="destructive" className="gap-1">
+                      <Ban className="h-3 w-3" /> محظور
+                    </Badge>
+                  )}
+                  {u.timeout_until && new Date(u.timeout_until) > new Date() && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="h-3 w-3" />
+                      مقيّد حتى {new Date(u.timeout_until).toLocaleString('ar-EG')}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
-            <Select
-              value={u.user_roles[0]?.role || 'user'}
-              onValueChange={(value) => updateUserRole(u.id, value)}
-            >
-              <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">مدير</SelectItem>
-                <SelectItem value="moderator">مشرف</SelectItem>
-                <SelectItem value="publisher">ناشر</SelectItem>
-                <SelectItem value="user">مستخدم</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select
+                value={u.user_roles[0]?.role || 'user'}
+                onValueChange={(value) => updateUserRole(u.id, value)}
+              >
+                <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">مدير</SelectItem>
+                  <SelectItem value="moderator">مشرف</SelectItem>
+                  <SelectItem value="publisher">ناشر</SelectItem>
+                  <SelectItem value="user">مستخدم</SelectItem>
+                </SelectContent>
+              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" aria-label="إجراءات">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>إجراءات الإشراف</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => kickUser(u)}>
+                    <LogOut className="h-4 w-4 ml-2" /> طرد (تسجيل خروج)
+                  </DropdownMenuItem>
+                  {u.timeout_until && new Date(u.timeout_until) > new Date() ? (
+                    <DropdownMenuItem onClick={() => clearTimeout(u)}>
+                      <ShieldCheck className="h-4 w-4 ml-2" /> رفع التقييد
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => timeoutUser(u)}>
+                      <Clock className="h-4 w-4 ml-2" /> تقييد مؤقت
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  {u.banned_at ? (
+                    <DropdownMenuItem onClick={() => unbanUser(u)}>
+                      <ShieldCheck className="h-4 w-4 ml-2" /> رفع الحظر
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => banUser(u)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Ban className="h-4 w-4 ml-2" /> حظر نهائي
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         ))}
       </div>

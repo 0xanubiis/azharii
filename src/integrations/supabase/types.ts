@@ -322,40 +322,52 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
           college_id: string | null
           created_at: string | null
           department_id: string | null
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          kicked_at: string | null
           location_id: string | null
           onboarding_completed: boolean | null
+          timeout_until: string | null
           updated_at: string | null
           username: string
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          kicked_at?: string | null
           location_id?: string | null
           onboarding_completed?: boolean | null
+          timeout_until?: string | null
           updated_at?: string | null
           username: string
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
           full_name?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
+          kicked_at?: string | null
           location_id?: string | null
           onboarding_completed?: boolean | null
+          timeout_until?: string | null
           updated_at?: string | null
           username?: string
         }
@@ -406,6 +418,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_post: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

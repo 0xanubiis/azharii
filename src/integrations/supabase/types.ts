@@ -59,6 +59,35 @@ export type Database = {
           },
         ]
       }
+      college_locations: {
+        Row: {
+          college_id: string
+          created_at: string
+          id: string
+          name_ar: string
+        }
+        Insert: {
+          college_id: string
+          created_at?: string
+          id?: string
+          name_ar: string
+        }
+        Update: {
+          college_id?: string
+          created_at?: string
+          id?: string
+          name_ar?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "college_locations_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       colleges: {
         Row: {
           created_at: string | null
@@ -299,6 +328,7 @@ export type Database = {
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          location_id: string | null
           onboarding_completed: boolean | null
           updated_at: string | null
           username: string
@@ -311,6 +341,7 @@ export type Database = {
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          location_id?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null
           username: string
@@ -323,6 +354,7 @@ export type Database = {
           full_name?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
+          location_id?: string | null
           onboarding_completed?: boolean | null
           updated_at?: string | null
           username?: string
@@ -340,6 +372,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "college_locations"
             referencedColumns: ["id"]
           },
         ]

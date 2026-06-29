@@ -109,6 +109,47 @@ export function UserManagement() {
     fetchUsers();
   };
 
+  const patchProfile = async (userId: string, patch: Record<string, any>, successMsg: string) => {
+    const { error } = await supabase.from('profiles').update(patch).eq('id', userId);
+    if (error) {
+      toast({ variant: 'destructive', title: 'خطأ', description: error.message });
+      return;
+    }
+    toast({ title: 'تم', description: successMsg });
+    fetchUsers();
+  };
+
+  const banUser = async (u: User) => {
+    const reason = window.prompt('سبب الحظر (اختياري):', u.ban_reason || '') ?? '';
+    if (!confirm(`حظر ${u.full_name} نهائياً؟`)) return;
+    await patchProfile(
+      u.id,
+      { banned_at: new Date().toISOString(), ban_reason: reason || null },
+      'تم حظر المستخدم',
+    );
+  };
+
+  const unbanUser = (u: User) =>
+    patchProfile(u.id, { banned_at: null, ban_reason: null }, 'تم رفع الحظر');
+
+  const timeoutUser = async (u: User) => {
+    const raw = window.prompt('مدة التقييد بالدقائق:', '60');
+    if (!raw) return;
+    const mins = parseInt(raw, 10);
+    if (!mins || mins < 1) return toast({ variant: 'destructive', title: 'خطأ', description: 'مدة غير صالحة' });
+    const until = new Date(Date.now() + mins * 60000).toISOString();
+    await patchProfile(u.id, { timeout_until: until }, `تم تقييد المستخدم لمدة ${mins} دقيقة`);
+  };
+
+  const clearTimeout = (u: User) =>
+    patchProfile(u.id, { timeout_until: null }, 'تم رفع التقييد');
+
+  const kickUser = async (u: User) => {
+    if (!confirm(`طرد ${u.full_name} وتسجيل خروجه فوراً؟`)) return;
+    await patchProfile(u.id, { kicked_at: new Date().toISOString() }, 'تم طرد المستخدم');
+  };
+
+
   const visibleDepartments = useMemo(
     () => (collegeId === 'all' ? departments : departments.filter((d) => d.college_id === collegeId)),
     [departments, collegeId],

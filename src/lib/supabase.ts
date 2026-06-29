@@ -12,6 +12,10 @@ export type Profile = {
   location_id: string | null;
   avatar_url: string | null;
   onboarding_completed: boolean;
+  banned_at: string | null;
+  ban_reason: string | null;
+  timeout_until: string | null;
+  kicked_at: string | null;
   created_at: string;
   updated_at: string;
 };

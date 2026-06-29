@@ -12,8 +12,17 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/lib/initials';
-import { Search } from 'lucide-react';
+import { Search, Ban, LogOut, Clock, ShieldCheck, MoreVertical } from 'lucide-react';
 
 type User = {
   id: string;
@@ -22,6 +31,10 @@ type User = {
   gender: 'male' | 'female';
   college_id: string | null;
   department_id: string | null;
+  banned_at: string | null;
+  ban_reason: string | null;
+  timeout_until: string | null;
+  kicked_at: string | null;
   colleges: { name_ar: string } | null;
   departments: { name_ar: string } | null;
   user_roles: { role: string }[];
@@ -95,6 +108,47 @@ export function UserManagement() {
     toast({ title: 'تم التحديث', description: 'تم تحديث صلاحية المستخدم بنجاح' });
     fetchUsers();
   };
+
+  const patchProfile = async (userId: string, patch: Record<string, any>, successMsg: string) => {
+    const { error } = await (supabase.from('profiles') as any).update(patch).eq('id', userId);
+    if (error) {
+      toast({ variant: 'destructive', title: 'خطأ', description: error.message });
+      return;
+    }
+    toast({ title: 'تم', description: successMsg });
+    fetchUsers();
+  };
+
+  const banUser = async (u: User) => {
+    const reason = window.prompt('سبب الحظر (اختياري):', u.ban_reason || '') ?? '';
+    if (!confirm(`حظر ${u.full_name} نهائياً؟`)) return;
+    await patchProfile(
+      u.id,
+      { banned_at: new Date().toISOString(), ban_reason: reason || null },
+      'تم حظر المستخدم',
+    );
+  };
+
+  const unbanUser = (u: User) =>
+    patchProfile(u.id, { banned_at: null, ban_reason: null }, 'تم رفع الحظر');
+
+  const timeoutUser = async (u: User) => {
+    const raw = window.prompt('مدة التقييد بالدقائق:', '60');
+    if (!raw) return;
+    const mins = parseInt(raw, 10);
+    if (!mins || mins < 1) return toast({ variant: 'destructive', title: 'خطأ', description: 'مدة غير صالحة' });
+    const until = new Date(Date.now() + mins * 60000).toISOString();
+    await patchProfile(u.id, { timeout_until: until }, `تم تقييد المستخدم لمدة ${mins} دقيقة`);
+  };
+
+  const clearTimeout = (u: User) =>
+    patchProfile(u.id, { timeout_until: null }, 'تم رفع التقييد');
+
+  const kickUser = async (u: User) => {
+    if (!confirm(`طرد ${u.full_name} وتسجيل خروجه فوراً؟`)) return;
+    await patchProfile(u.id, { kicked_at: new Date().toISOString() }, 'تم طرد المستخدم');
+  };
+
 
   const visibleDepartments = useMemo(
     () => (collegeId === 'all' ? departments : departments.filter((d) => d.college_id === collegeId)),
@@ -202,21 +256,70 @@ export function UserManagement() {
                   </Badge>
                   {u.colleges && <Badge variant="outline">{u.colleges.name_ar}</Badge>}
                   {u.departments && <Badge variant="outline">{u.departments.name_ar}</Badge>}
+                  {u.banned_at && (
+                    <Badge variant="destructive" className="gap-1">
+                      <Ban className="h-3 w-3" /> محظور
+                    </Badge>
+                  )}
+                  {u.timeout_until && new Date(u.timeout_until) > new Date() && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="h-3 w-3" />
+                      مقيّد حتى {new Date(u.timeout_until).toLocaleString('ar-EG')}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
-            <Select
-              value={u.user_roles[0]?.role || 'user'}
-              onValueChange={(value) => updateUserRole(u.id, value)}
-            >
-              <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">مدير</SelectItem>
-                <SelectItem value="moderator">مشرف</SelectItem>
-                <SelectItem value="publisher">ناشر</SelectItem>
-                <SelectItem value="user">مستخدم</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select
+                value={u.user_roles[0]?.role || 'user'}
+                onValueChange={(value) => updateUserRole(u.id, value)}
+              >
+                <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">مدير</SelectItem>
+                  <SelectItem value="moderator">مشرف</SelectItem>
+                  <SelectItem value="publisher">ناشر</SelectItem>
+                  <SelectItem value="user">مستخدم</SelectItem>
+                </SelectContent>
+              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" aria-label="إجراءات">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>إجراءات الإشراف</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => kickUser(u)}>
+                    <LogOut className="h-4 w-4 ml-2" /> طرد (تسجيل خروج)
+                  </DropdownMenuItem>
+                  {u.timeout_until && new Date(u.timeout_until) > new Date() ? (
+                    <DropdownMenuItem onClick={() => clearTimeout(u)}>
+                      <ShieldCheck className="h-4 w-4 ml-2" /> رفع التقييد
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => timeoutUser(u)}>
+                      <Clock className="h-4 w-4 ml-2" /> تقييد مؤقت
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  {u.banned_at ? (
+                    <DropdownMenuItem onClick={() => unbanUser(u)}>
+                      <ShieldCheck className="h-4 w-4 ml-2" /> رفع الحظر
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => banUser(u)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Ban className="h-4 w-4 ml-2" /> حظر نهائي
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         ))}
       </div>

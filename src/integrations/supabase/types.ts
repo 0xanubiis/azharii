@@ -432,6 +432,15 @@ export type Database = {
     }
     Functions: {
       can_user_post: { Args: { _user_id: string }; Returns: boolean }
+      current_profile_scope: {
+        Args: never
+        Returns: {
+          college_id: string
+          department_id: string
+          gender: string
+          location_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

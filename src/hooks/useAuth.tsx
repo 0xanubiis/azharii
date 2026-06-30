@@ -9,6 +9,7 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const profileChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const subscribedUidRef = useRef<string | null>(null);
   const lastKickedAtRef = useRef<string | null>(null);
 
   const enforceModeration = async (p: Profile | null) => {
@@ -31,12 +32,14 @@ export const useAuth = () => {
   };
 
   const subscribeProfile = (uid: string) => {
+    if (subscribedUidRef.current === uid && profileChannelRef.current) return;
     if (profileChannelRef.current) {
       supabase.removeChannel(profileChannelRef.current);
       profileChannelRef.current = null;
     }
+    subscribedUidRef.current = uid;
     const ch = supabase
-      .channel(`profile-${uid}`)
+      .channel(`profile-${uid}-${Math.random().toString(36).slice(2, 10)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${uid}` },
@@ -71,6 +74,7 @@ export const useAuth = () => {
       } else {
         setProfile(null);
         lastKickedAtRef.current = null;
+        subscribedUidRef.current = null;
         if (profileChannelRef.current) {
           supabase.removeChannel(profileChannelRef.current);
           profileChannelRef.current = null;

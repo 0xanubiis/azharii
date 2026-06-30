@@ -53,7 +53,20 @@ export function AppSidebar({ onNavigate }: Props) {
     fetchChannels();
     fetchCollegeInfo();
     checkAdminStatus();
-  }, [profile, user]);
+
+    if (!profile?.college_id) return;
+    const ch = supabase
+      .channel(`sidebar-channels-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'channels' },
+        () => fetchChannels(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [profile?.id, profile?.college_id, profile?.department_id, profile?.location_id, profile?.gender, user?.id]);
 
   const checkAdminStatus = async () => {
     if (!user) return;
@@ -81,27 +94,40 @@ export function AppSidebar({ onNavigate }: Props) {
     }
   };
 
+  // Build a Supabase filter that matches the user's profile on a scoping field
+  // (column must be NULL or equal to the profile's value).
+  const scopeOr = (col: string, val: string | null | undefined) =>
+    val ? `${col}.is.null,${col}.eq.${val}` : `${col}.is.null`;
+
   const fetchChannels = async () => {
     if (!profile?.college_id || !profile?.department_id) return;
-    const { data: collegeChannels } = await supabase
-      .from('channels')
-      .select('*')
-      .eq('college_id', profile.college_id)
-      .is('department_id', null)
-      .order('is_official', { ascending: false });
 
-    const { data: departmentChannels } = await supabase
-      .from('channels')
-      .select('*')
-      .eq('department_id', profile.department_id)
-      .order('type');
+    const applyScope = (q: any) =>
+      q
+        .or(scopeOr('location_id', profile.location_id))
+        .or(scopeOr('gender', profile.gender));
+
+    const { data: collegeChannels } = await applyScope(
+      supabase
+        .from('channels')
+        .select('*')
+        .eq('college_id', profile.college_id)
+        .is('department_id', null),
+    ).order('is_official', { ascending: false });
+
+    const { data: departmentChannels } = await applyScope(
+      supabase
+        .from('channels')
+        .select('*')
+        .eq('department_id', profile.department_id),
+    ).order('type');
 
     const groups: ChannelGroup[] = [];
     if (collegeChannels?.length) {
       groups.push({ title: 'قنوات الكلية', channels: collegeChannels as ChannelRow[] });
     }
     if (departmentChannels) {
-      const text = departmentChannels.filter((c) => c.type === 'text');
+      const text = departmentChannels.filter((c: any) => c.type === 'text');
       if (text.length) groups.push({ title: 'القنوات النصية', channels: text as ChannelRow[] });
     }
     setChannelGroups(groups);

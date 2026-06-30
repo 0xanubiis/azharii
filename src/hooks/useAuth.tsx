@@ -74,6 +74,7 @@ export const useAuth = () => {
       } else {
         setProfile(null);
         lastKickedAtRef.current = null;
+        subscribedUidRef.current = null;
         if (profileChannelRef.current) {
           supabase.removeChannel(profileChannelRef.current);
           profileChannelRef.current = null;

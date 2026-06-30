@@ -9,6 +9,7 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const profileChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const subscribedUidRef = useRef<string | null>(null);
   const lastKickedAtRef = useRef<string | null>(null);
 
   const enforceModeration = async (p: Profile | null) => {

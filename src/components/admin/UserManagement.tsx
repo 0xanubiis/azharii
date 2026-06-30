@@ -64,18 +64,26 @@ export function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(
-          `*, colleges (name_ar), departments (name_ar), user_roles (role)`,
-        )
-        .order('created_at', { ascending: false });
-      if (error) {
-        console.error('Error fetching users:', error);
+      const [{ data: profs, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select(`*, colleges (name_ar), departments (name_ar)`)
+          .order('created_at', { ascending: false }),
+        supabase.from('user_roles').select('user_id, role'),
+      ]);
+      if (pErr || rErr) {
+        console.error('Error fetching users:', pErr || rErr);
         toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });
         return;
       }
-      if (data) setUsers(data as any);
+      const byUser = new Map<string, { role: string }[]>();
+      (roles ?? []).forEach((r: any) => {
+        const arr = byUser.get(r.user_id) ?? [];
+        arr.push({ role: r.role });
+        byUser.set(r.user_id, arr);
+      });
+      const merged = (profs ?? []).map((p: any) => ({ ...p, user_roles: byUser.get(p.id) ?? [] }));
+      setUsers(merged as any);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });

@@ -19,8 +19,10 @@ export type Database = {
           college_id: string | null
           created_at: string | null
           department_id: string | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
           is_official: boolean | null
+          location_id: string | null
           name_ar: string
           type: Database["public"]["Enums"]["channel_type"]
         }
@@ -28,8 +30,10 @@ export type Database = {
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           is_official?: boolean | null
+          location_id?: string | null
           name_ar: string
           type: Database["public"]["Enums"]["channel_type"]
         }
@@ -37,8 +41,10 @@ export type Database = {
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           is_official?: boolean | null
+          location_id?: string | null
           name_ar?: string
           type?: Database["public"]["Enums"]["channel_type"]
         }
@@ -55,6 +61,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "college_locations"
             referencedColumns: ["id"]
           },
         ]

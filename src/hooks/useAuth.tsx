@@ -32,7 +32,12 @@ export const useAuth = () => {
   };
 
   const subscribeProfile = (uid: string) => {
+    if (subscribedUidRef.current === uid && profileChannelRef.current) return;
     if (profileChannelRef.current) {
+      supabase.removeChannel(profileChannelRef.current);
+      profileChannelRef.current = null;
+    }
+    subscribedUidRef.current = uid;
       supabase.removeChannel(profileChannelRef.current);
       profileChannelRef.current = null;
     }

@@ -39,7 +39,7 @@ export const useAuth = () => {
     }
     subscribedUidRef.current = uid;
     const ch = supabase
-      .channel(`profile-${uid}`)
+      .channel(`profile-${uid}-${Math.random().toString(36).slice(2, 10)}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${uid}` },

@@ -38,9 +38,6 @@ export const useAuth = () => {
       profileChannelRef.current = null;
     }
     subscribedUidRef.current = uid;
-      supabase.removeChannel(profileChannelRef.current);
-      profileChannelRef.current = null;
-    }
     const ch = supabase
       .channel(`profile-${uid}`)
       .on(

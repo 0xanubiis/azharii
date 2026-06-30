@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, College, Department, CollegeLocation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -21,6 +22,7 @@ const TOTAL_STEPS = 4;
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { hasRole } = useUserRoles();
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
@@ -34,8 +36,11 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (profile?.onboarding_completed) navigate('/home');
-  }, [profile, navigate]);
+    if (profile?.onboarding_completed) {
+      const isAdmin = hasRole('admin');
+      navigate(isAdmin ? '/admin' : '/home');
+    }
+  }, [profile, navigate, hasRole]);
 
   useEffect(() => {
     supabase
@@ -81,7 +86,8 @@ const Onboarding = () => {
         .eq('id', user.id);
       if (error) throw error;
       toast({ title: 'تم إكمال التسجيل', description: 'مرحباً بك في أزهري!' });
-      navigate('/home');
+      const isAdmin = hasRole('admin');
+      navigate(isAdmin ? '/admin' : '/home');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'حدث خطأ', description: error.message });
     } finally {

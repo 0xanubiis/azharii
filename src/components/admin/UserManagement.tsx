@@ -22,7 +22,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/lib/initials';
-import { Search, Ban, LogOut, Clock, ShieldCheck, MoreVertical } from 'lucide-react';
+import { Search, Ban, LogOut, Clock, ShieldCheck, MoreVertical, Info } from 'lucide-react';
+import { ModerationDialog } from '@/components/ModerationDialog';
 
 type User = {
   id: string;
@@ -49,6 +50,11 @@ export function UserManagement() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [moderationDialog, setModerationDialog] = useState<{
+    open: boolean;
+    type: 'ban' | 'timeout' | 'kick';
+    user: User | null;
+  }>({ open: false, type: 'ban', user: null });
 
   const [search, setSearch] = useState('');
   const [collegeId, setCollegeId] = useState<string>('all');
@@ -127,34 +133,41 @@ export function UserManagement() {
     fetchUsers();
   };
 
-  const banUser = async (u: User) => {
-    const reason = window.prompt('سبب الحظر (اختياري):', u.ban_reason || '') ?? '';
-    if (!confirm(`حظر ${u.full_name} نهائياً؟`)) return;
-    await patchProfile(
-      u.id,
-      { banned_at: new Date().toISOString(), ban_reason: reason || null },
-      'تم حظر المستخدم',
-    );
+  const banUser = (u: User) => {
+    setModerationDialog({ open: true, type: 'ban', user: u });
   };
 
   const unbanUser = (u: User) =>
     patchProfile(u.id, { banned_at: null, ban_reason: null }, 'تم رفع الحظر');
 
-  const timeoutUser = async (u: User) => {
-    const raw = window.prompt('مدة التقييد بالدقائق:', '60');
-    if (!raw) return;
-    const mins = parseInt(raw, 10);
-    if (!mins || mins < 1) return toast({ variant: 'destructive', title: 'خطأ', description: 'مدة غير صالحة' });
-    const until = new Date(Date.now() + mins * 60000).toISOString();
-    await patchProfile(u.id, { timeout_until: until }, `تم تقييد المستخدم لمدة ${mins} دقيقة`);
+  const timeoutUser = (u: User) => {
+    setModerationDialog({ open: true, type: 'timeout', user: u });
   };
 
   const clearTimeout = (u: User) =>
     patchProfile(u.id, { timeout_until: null }, 'تم رفع التقييد');
 
-  const kickUser = async (u: User) => {
-    if (!confirm(`طرد ${u.full_name} وتسجيل خروجه فوراً؟`)) return;
-    await patchProfile(u.id, { kicked_at: new Date().toISOString() }, 'تم طرد المستخدم');
+  const kickUser = (u: User) => {
+    setModerationDialog({ open: true, type: 'kick', user: u });
+  };
+
+  const handleModerationConfirm = async (reason?: string, duration?: number) => {
+    const { type, user } = moderationDialog;
+    if (!user) return;
+
+    if (type === 'ban') {
+      await patchProfile(
+        user.id,
+        { banned_at: new Date().toISOString(), ban_reason: reason || null },
+        'تم حظر المستخدم',
+      );
+    } else if (type === 'timeout' && duration) {
+      const until = new Date(Date.now() + duration * 60000).toISOString();
+      await patchProfile(user.id, { timeout_until: until }, `تم تقييد المستخدم لمدة ${duration} دقيقة`);
+    } else if (type === 'kick') {
+      await patchProfile(user.id, { kicked_at: new Date().toISOString() }, 'تم طرد المستخدم');
+    }
+    setModerationDialog({ open: false, type: 'ban', user: null });
   };
 
 
@@ -185,13 +198,40 @@ export function UserManagement() {
   }
 
   return (
-    <Card className="p-4 md:p-6">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold mb-2">إدارة المستخدمين</h2>
-        <p className="text-sm text-muted-foreground">
-          فلتر المستخدمين حسب الكلية، القسم، والنوع — ثم عيّن الصلاحية المناسبة.
-        </p>
-      </div>
+    <>
+      <Card className="p-4 md:p-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-2">إدارة المستخدمين</h2>
+          <p className="text-sm text-muted-foreground">
+            فلتر المستخدمين حسب الكلية، القسم، والنوع — ثم عيّن الصلاحية المناسبة.
+          </p>
+        </div>
+
+        {/* Roles Information */}
+        <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2 mb-3">
+            <Info className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-sm">معلومات الصلاحيات</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="font-semibold text-primary">مدير (Admin):</span>
+              <span className="text-muted-foreground mr-1">- الوصول الكامل للوحة التحكم وإدارة جميع المستخدمين والقنوات</span>
+            </div>
+            <div>
+              <span className="font-semibold text-primary">مشرف (Moderator):</span>
+              <span className="text-muted-foreground mr-1">- إدارة الرسائل والمحتوى، حظر المستخدمين مؤقتاً</span>
+            </div>
+            <div>
+              <span className="font-semibold text-primary">ناشر (Publisher):</span>
+              <span className="text-muted-foreground mr-1">- إنشاء القنوات الرسمية ونشر الإعلانات</span>
+            </div>
+            <div>
+              <span className="font-semibold text-primary">مستخدم (User):</span>
+              <span className="text-muted-foreground mr-1">- الوصول الأساسي للقنوات والمحادثات</span>
+            </div>
+          </div>
+        </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-4">
@@ -332,5 +372,15 @@ export function UserManagement() {
         ))}
       </div>
     </Card>
+    
+    <ModerationDialog
+      open={moderationDialog.open}
+      onOpenChange={(open) => setModerationDialog({ ...moderationDialog, open })}
+      type={moderationDialog.type}
+      userName={moderationDialog.user?.full_name || ''}
+      onConfirm={handleModerationConfirm}
+      currentBanReason={moderationDialog.user?.ban_reason || undefined}
+    />
+    </>
   );
 }

@@ -9,7 +9,7 @@ import { Menu, Loader2 } from 'lucide-react';
 
 const ChannelLayout = () => {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, BanNotificationComponent } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -30,47 +30,50 @@ const ChannelLayout = () => {
   }
 
   return (
-    <div className="h-screen w-full flex bg-background overflow-hidden" dir="rtl">
-      {/* Desktop / tablet sidebar */}
-      <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 border-l border-sidebar-border bg-sidebar">
-        <AppSidebar onNavigate={() => setMobileOpen(false)} />
-      </aside>
-
-      {/* Mobile drawer */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent
-          side="right"
-          className="p-0 w-[85vw] max-w-[320px] bg-sidebar border-l border-sidebar-border"
-        >
+    <>
+      <div className="h-screen w-full flex bg-background overflow-hidden" dir="rtl">
+        {/* Desktop / tablet sidebar */}
+        <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 border-l border-sidebar-border bg-sidebar">
           <AppSidebar onNavigate={() => setMobileOpen(false)} />
-        </SheetContent>
-      </Sheet>
+        </aside>
 
-      {/* Main column */}
-      <div className="flex-1 min-w-0 flex flex-col bg-background">
-        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-3 md:px-5 gap-3 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            aria-label="فتح القائمة"
-            onClick={() => setMobileOpen(true)}
+        {/* Mobile drawer */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent
+            side="right"
+            className="p-0 w-[85vw] max-w-[320px] bg-sidebar border-l border-sidebar-border"
           >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg md:text-xl font-bold text-primary font-serif tracking-wide">
-            أزهري
-          </h1>
-          <div className="ms-auto flex items-center gap-1">
-            <ThemeToggle />
-          </div>
-        </header>
+            <AppSidebar onNavigate={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
-        <main className="flex-1 min-h-0 overflow-hidden">
-          <Outlet />
-        </main>
+        {/* Main column */}
+        <div className="flex-1 min-w-0 flex flex-col bg-background">
+          <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-3 md:px-5 gap-3 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label="فتح القائمة"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg md:text-xl font-bold text-primary font-serif tracking-wide">
+              أزهري
+            </h1>
+            <div className="ms-auto flex items-center gap-1">
+              <ThemeToggle />
+            </div>
+          </header>
+
+          <main className="flex-1 min-h-0 overflow-hidden">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+      {BanNotificationComponent}
+    </>
   );
 };
 

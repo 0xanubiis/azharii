@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 const Splash = () => {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
+  const { hasRole } = useUserRoles();
 
   useEffect(() => {
     if (loading) return;
@@ -15,7 +17,10 @@ const Splash = () => {
     const timer = setTimeout(() => {
       if (!user) navigate('/auth', { replace: true });
       else if (profile && !profile.onboarding_completed) navigate('/onboarding', { replace: true });
-      else if (profile) navigate('/home', { replace: true });
+      else if (profile) {
+        const isAdmin = hasRole('admin');
+        navigate(isAdmin ? '/admin' : '/home', { replace: true });
+      }
     }, delay);
     return () => clearTimeout(timer);
   }, [user, profile, loading, navigate]);

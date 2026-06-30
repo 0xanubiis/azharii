@@ -147,11 +147,10 @@ export function AppSidebar({ onNavigate }: Props) {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   const navItems = [
-    { path: '/home', label: 'الرئيسية', icon: HomeIcon },
+    { path: isAdmin ? '/admin' : '/home', label: 'الرئيسية', icon: HomeIcon },
     { path: '/notifications', label: 'الإشعارات', icon: Bell, badge: unreadCount },
     { path: '/invitations', label: 'الدعوات', icon: Users },
     { path: '/dm', label: 'المحادثات الخاصة', icon: MessageSquare, badge: unreadDMs },
-    ...(isAdmin ? [{ path: '/admin', label: 'لوحة التحكم', icon: Shield }] : []),
   ];
 
   return (

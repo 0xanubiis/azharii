@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Profile } from '@/lib/supabase';
+import { BanNotificationDialog } from '@/components/ModerationDialog';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -11,14 +12,15 @@ export const useAuth = () => {
   const profileChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const subscribedUidRef = useRef<string | null>(null);
   const lastKickedAtRef = useRef<string | null>(null);
+  const [showBanDialog, setShowBanDialog] = useState(false);
+  const [banReason, setBanReason] = useState<string | undefined>();
 
   const enforceModeration = async (p: Profile | null) => {
     if (!p) return false;
-    // Banned: force sign out
+    // Banned: show dialog and force sign out
     if (p.banned_at) {
-      const reason = p.ban_reason ? `\n${p.ban_reason}` : '';
-      // eslint-disable-next-line no-alert
-      alert(`تم حظر حسابك من المنصة.${reason}`);
+      setBanReason(p.ban_reason || undefined);
+      setShowBanDialog(true);
       await supabase.auth.signOut();
       return true;
     }
@@ -112,5 +114,11 @@ export const useAuth = () => {
     setProfile(null);
   };
 
-  return { user, session, profile, loading, signOut };
+  return { user, session, profile, loading, signOut, BanNotificationComponent: (
+    <BanNotificationDialog
+      open={showBanDialog}
+      reason={banReason}
+      onSignOut={() => setShowBanDialog(false)}
+    />
+  ) };
 };

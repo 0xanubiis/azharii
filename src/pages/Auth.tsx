@@ -39,7 +39,21 @@ const Auth = () => {
           .select('onboarding_completed')
           .eq('id', data.user.id)
           .maybeSingle();
-        navigate(profile?.onboarding_completed ? '/home' : '/onboarding');
+        
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+        
+        const isAdmin = userRoles?.some(r => r.role === 'admin');
+        
+        if (!profile?.onboarding_completed) {
+          navigate('/onboarding');
+        } else if (isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/home');
+        }
       }
     } catch (error: any) {
       toast({

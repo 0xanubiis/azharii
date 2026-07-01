@@ -86,10 +86,22 @@ const Auth = () => {
       toast({ title: 'تم إنشاء الحساب بنجاح', description: 'مرحباً بك في أزهري!' });
       if (data.user) navigate('/onboarding');
     } catch (error: any) {
+      const raw = error?.message || error?.error_description || error?.msg || '';
+      const code = error?.code || error?.status;
+      let description = raw || 'حدث خطأ أثناء إنشاء الحساب';
+      if (/already registered|already exists|duplicate/i.test(raw) || code === 'user_already_exists') {
+        description = 'هذا البريد الإلكتروني مسجل بالفعل. جرّب تسجيل الدخول.';
+      } else if (/password/i.test(raw)) {
+        description = 'كلمة المرور ضعيفة. استخدم ٨ خانات على الأقل مع أرقام وحروف.';
+      } else if (/invalid.*email/i.test(raw)) {
+        description = 'صيغة البريد الإلكتروني غير صحيحة.';
+      } else if (!raw) {
+        description = 'تعذّر إنشاء الحساب. تأكد من البريد وكلمة المرور وحاول مجدداً.';
+      }
       toast({
         variant: 'destructive',
         title: 'خطأ في إنشاء الحساب',
-        description: error.message || 'حدث خطأ أثناء إنشاء الحساب',
+        description,
       });
     } finally {
       setLoading(false);

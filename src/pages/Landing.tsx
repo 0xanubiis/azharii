@@ -1,24 +1,10 @@
-import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserRoles } from '@/hooks/useUserRoles';
 import { ShieldCheck, Users, MessageSquare, BookOpen } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Landing = () => {
-  const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
-  const { hasRole } = useUserRoles();
-
-  useEffect(() => {
-    if (loading) return;
-    if (user && profile) {
-      if (!profile.onboarding_completed) navigate('/onboarding', { replace: true });
-      else navigate(hasRole('admin') ? '/admin' : '/home', { replace: true });
-    }
-  }, [user, profile, loading, hasRole, navigate]);
 
   return (
     <>

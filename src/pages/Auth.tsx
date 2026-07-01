@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ShieldCheck, Users, MessageSquare } from 'lucide-react';
+import { ShieldCheck, Users, MessageSquare, ArrowRight } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -156,7 +156,16 @@ const Auth = () => {
 
         {/* Form panel */}
         <section className="flex items-center justify-center p-4 md:p-8 relative">
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              <span className="hidden sm:inline">الرئيسية</span>
+            </Button>
             <ThemeToggle />
           </div>
           <Card className="w-full max-w-md border-border/60 shadow-elevated">

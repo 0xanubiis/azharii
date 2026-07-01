@@ -86,17 +86,8 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        loadProfile(session.user.id).finally(() => setLoading(false));
-        subscribeProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    // Don't automatically restore session - user must login each time
+    setLoading(false);
 
     return () => {
       subscription.unsubscribe();

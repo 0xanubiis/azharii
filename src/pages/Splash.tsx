@@ -2,28 +2,19 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserRoles } from '@/hooks/useUserRoles';
 
 const Splash = () => {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
-  const { hasRole } = useUserRoles();
+  const { loading } = useAuth();
 
   useEffect(() => {
     if (loading) return;
-    // If we already know the user, redirect immediately to avoid a blank/splash flash
-    // on tab refocus or back-navigation.
-    const delay = user && profile ? 0 : 600;
+    // Always redirect to login page - users must login each time
     const timer = setTimeout(() => {
-      if (!user) navigate('/auth', { replace: true });
-      else if (profile && !profile.onboarding_completed) navigate('/onboarding', { replace: true });
-      else if (profile) {
-        const isAdmin = hasRole('admin');
-        navigate(isAdmin ? '/admin' : '/home', { replace: true });
-      }
-    }, delay);
+      navigate('/auth', { replace: true });
+    }, 600);
     return () => clearTimeout(timer);
-  }, [user, profile, loading, navigate]);
+  }, [loading, navigate]);
 
   return (
     <>

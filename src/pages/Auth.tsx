@@ -156,7 +156,7 @@ const Auth = () => {
               <CardDescription>سجّل دخولك أو أنشئ حسابًا جديدًا للبدء</CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="login" dir="rtl">
+              <Tabs defaultValue={defaultTab} dir="rtl">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
                   <TabsTrigger value="signup">إنشاء حساب</TabsTrigger>

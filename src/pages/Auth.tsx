@@ -14,6 +14,8 @@ import { ShieldCheck, Users, MessageSquare } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const { toast } = useToast();
   const { hasRole } = useUserRoles();
   const [loading, setLoading] = useState(false);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ import { ShieldCheck, Users, MessageSquare } from 'lucide-react';
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasRole } = useUserRoles();
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState('');

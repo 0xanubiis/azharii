@@ -9,6 +9,7 @@ import {
   ChevronDown,
   MessageSquare,
   Shield,
+  ShieldCheck,
   Home as HomeIcon,
   Settings,
 } from 'lucide-react';
@@ -147,10 +148,11 @@ export function AppSidebar({ onNavigate }: Props) {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   const navItems = [
-    { path: isAdmin ? '/admin' : '/home', label: 'الرئيسية', icon: HomeIcon },
+    { path: '/home', label: 'الرئيسية', icon: HomeIcon },
     { path: '/notifications', label: 'الإشعارات', icon: Bell, badge: unreadCount },
     { path: '/invitations', label: 'الدعوات', icon: Users },
     { path: '/dm', label: 'المحادثات الخاصة', icon: MessageSquare, badge: unreadDMs },
+    ...(isAdmin ? [{ path: '/admin', label: 'لوحة التحكم', icon: ShieldCheck }] : []),
   ];
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -14,6 +14,8 @@ import { ShieldCheck, Users, MessageSquare } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const { toast } = useToast();
   const { hasRole } = useUserRoles();
   const [loading, setLoading] = useState(false);
@@ -154,7 +156,7 @@ const Auth = () => {
               <CardDescription>سجّل دخولك أو أنشئ حسابًا جديدًا للبدء</CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="login" dir="rtl">
+              <Tabs defaultValue={defaultTab} dir="rtl">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
                   <TabsTrigger value="signup">إنشاء حساب</TabsTrigger>

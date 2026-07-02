@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
@@ -10,7 +10,91 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ShieldCheck, Users, MessageSquare, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Users, MessageSquare, ArrowRight, Eye, EyeOff, Check, X } from 'lucide-react';
+
+// Allowed email providers (well-known + Al-Azhar academic).
+const ALLOWED_EMAIL_DOMAINS = [
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'msn.com',
+  'proton.me',
+  'protonmail.com',
+  'yahoo.com',
+  'yahoo.co.uk',
+  'ymail.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'aol.com',
+  'zoho.com',
+  'gmx.com',
+  'mail.com',
+  'yandex.com',
+  'azhar.edu.eg',
+];
+
+const emailDomain = (email: string) => email.trim().toLowerCase().split('@')[1] || '';
+const isAllowedEmail = (email: string) => ALLOWED_EMAIL_DOMAINS.includes(emailDomain(email));
+
+const passwordChecks = (pw: string) => ({
+  length: pw.length >= 8,
+  upper: /[A-Z]/.test(pw),
+  lower: /[a-z]/.test(pw),
+  number: /\d/.test(pw),
+  symbol: /[^A-Za-z0-9]/.test(pw),
+});
+const isStrongPassword = (pw: string) => Object.values(passwordChecks(pw)).every(Boolean);
+
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  minLength,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  minLength?: number;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        required
+        minLength={minLength}
+        className="pl-10"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        aria-label={show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+        className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        tabIndex={-1}
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
+
+function Rule({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <li className={`flex items-center gap-1.5 ${ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+      {ok ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+      <span>{label}</span>
+    </li>
+  );
+}
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -28,6 +112,10 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
 
+  const pwChecks = useMemo(() => passwordChecks(signupPassword), [signupPassword]);
+  const pwStrong = useMemo(() => isStrongPassword(signupPassword), [signupPassword]);
+  const emailOk = useMemo(() => isAllowedEmail(signupEmail), [signupEmail]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -43,14 +131,14 @@ const Auth = () => {
           .select('onboarding_completed')
           .eq('id', data.user.id)
           .maybeSingle();
-        
+
         const { data: userRoles } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id);
-        
-        const isAdmin = userRoles?.some(r => r.role === 'admin');
-        
+
+        const isAdmin = userRoles?.some((r) => r.role === 'admin');
+
         if (!profile?.onboarding_completed) {
           navigate('/onboarding');
         } else if (isAdmin) {
@@ -72,6 +160,24 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAllowedEmail(signupEmail)) {
+      toast({
+        variant: 'destructive',
+        title: 'مزوّد البريد غير مدعوم',
+        description: 'استخدم بريد Gmail أو Outlook أو Proton.me أو Yahoo أو iCloud أو بريد الأزهر.',
+      });
+      return;
+    }
+    if (!isStrongPassword(signupPassword)) {
+      toast({
+        variant: 'destructive',
+        title: 'كلمة المرور ضعيفة',
+        description: '٨ خانات على الأقل، وتشمل حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا.',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -92,7 +198,7 @@ const Auth = () => {
       if (/already registered|already exists|duplicate/i.test(raw) || code === 'user_already_exists') {
         description = 'هذا البريد الإلكتروني مسجل بالفعل. جرّب تسجيل الدخول.';
       } else if (/password/i.test(raw)) {
-        description = 'كلمة المرور ضعيفة. استخدم ٨ خانات على الأقل مع أرقام وحروف.';
+        description = 'كلمة المرور ضعيفة. استخدم ٨ خانات على الأقل مع أرقام وحروف ورموز.';
       } else if (/invalid.*email/i.test(raw)) {
         description = 'صيغة البريد الإلكتروني غير صحيحة.';
       } else if (!raw) {
@@ -122,7 +228,6 @@ const Auth = () => {
       </Helmet>
 
       <div className="min-h-screen w-full grid lg:grid-cols-2 bg-background" dir="rtl">
-        {/* Brand panel — hidden on mobile */}
         <aside className="hidden lg:flex relative overflow-hidden gradient-brand text-primary-foreground p-12 flex-col justify-between">
           <div className="absolute inset-0 islamic-pattern opacity-15" aria-hidden="true" />
           <div className="relative z-10">
@@ -154,15 +259,9 @@ const Auth = () => {
           </ul>
         </aside>
 
-        {/* Form panel */}
         <section className="flex items-center justify-center p-4 md:p-8 relative">
           <div className="absolute top-4 left-4 flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="gap-2"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2">
               <ArrowRight className="h-4 w-4" />
               <span className="hidden sm:inline">الرئيسية</span>
             </Button>
@@ -190,7 +289,7 @@ const Auth = () => {
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="example@azhar.edu.eg"
+                        placeholder="example@gmail.com"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         required
@@ -199,13 +298,11 @@ const Auth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="login-password">كلمة المرور</Label>
-                      <Input
+                      <PasswordInput
                         id="login-password"
-                        type="password"
-                        placeholder="••••••••"
                         value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        required
+                        onChange={setLoginPassword}
+                        placeholder="••••••••"
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
@@ -244,26 +341,41 @@ const Auth = () => {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="example@azhar.edu.eg"
+                        placeholder="example@gmail.com"
                         value={signupEmail}
                         onChange={(e) => setSignupEmail(e.target.value)}
                         required
                         dir="ltr"
+                        aria-invalid={!!signupEmail && !emailOk}
                       />
+                      {!!signupEmail && !emailOk && (
+                        <p className="text-xs text-destructive">
+                          مزوّد البريد غير مدعوم. المسموح: Gmail، Outlook، Proton.me، Yahoo، iCloud، أو بريد الأزهر.
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">كلمة المرور</Label>
-                      <Input
+                      <PasswordInput
                         id="signup-password"
-                        type="password"
-                        placeholder="٨ خانات على الأقل"
                         value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        required
+                        onChange={setSignupPassword}
+                        placeholder="٨ خانات، حروف كبيرة/صغيرة، أرقام، ورموز"
                         minLength={8}
                       />
+                      <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs mt-1">
+                        <Rule ok={pwChecks.length} label="٨ خانات فأكثر" />
+                        <Rule ok={pwChecks.upper} label="حرف كبير (A-Z)" />
+                        <Rule ok={pwChecks.lower} label="حرف صغير (a-z)" />
+                        <Rule ok={pwChecks.number} label="رقم (0-9)" />
+                        <Rule ok={pwChecks.symbol} label="رمز (!@#…)" />
+                      </ul>
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={loading || !pwStrong || !emailOk}
+                    >
                       {loading ? 'جاري إنشاء الحساب…' : 'إنشاء حساب جديد'}
                     </Button>
                   </form>

@@ -73,7 +73,7 @@ const ChannelLayout = () => {
               >
                 <X className="h-4 w-4" />
               </Button>
-            <AppSidebar onNavigate={() => setMobileOpen(false)} />
+              <AppSidebar onNavigate={() => setMobileOpen(false)} />
             </aside>
           </div>
         )}

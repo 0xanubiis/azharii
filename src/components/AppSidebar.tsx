@@ -63,18 +63,20 @@ export function AppSidebar({ onNavigate }: Props) {
 
     loadSidebar();
 
-    if (!profile?.college_id) return;
-    const ch = supabase
-      .channel(`sidebar-channels-${profile.id}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'channels' },
-        () => fetchChannels(),
-      )
-      .subscribe();
+    const ch = profile?.college_id
+      ? supabase
+          .channel(`sidebar-channels-${profile.id}-${Date.now()}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'channels' },
+            () => fetchChannels(),
+          )
+          .subscribe()
+      : null;
+
     return () => {
       active = false;
-      supabase.removeChannel(ch);
+      if (ch) supabase.removeChannel(ch);
     };
   }, [profile?.id, profile?.college_id, profile?.department_id, profile?.location_id, profile?.gender, user?.id]);
 

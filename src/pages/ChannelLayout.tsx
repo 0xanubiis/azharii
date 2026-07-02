@@ -42,8 +42,12 @@ const ChannelLayout = () => {
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent
             side="right"
-            className="p-0 w-[85vw] max-w-[320px] bg-sidebar border-l border-sidebar-border"
+            className="p-0 w-[85vw] max-w-[320px] bg-sidebar border-l border-sidebar-border flex flex-col"
           >
+            <VisuallyHidden>
+              <SheetTitle>القائمة الجانبية</SheetTitle>
+              <SheetDescription>التنقل بين الأقسام والقنوات</SheetDescription>
+            </VisuallyHidden>
             <AppSidebar onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>

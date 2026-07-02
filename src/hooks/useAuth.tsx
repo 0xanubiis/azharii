@@ -56,7 +56,7 @@ export const useAuth = () => {
   };
 
   const loadProfile = async (uid: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', uid).single();
+    const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
     const p = (data as Profile) ?? null;
     setProfile(p);
     if (p?.kicked_at) lastKickedAtRef.current = p.kicked_at;
@@ -64,37 +64,60 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    let active = true;
+
+    const clearProfileSubscription = () => {
+      subscribedUidRef.current = null;
+      if (profileChannelRef.current) {
+        supabase.removeChannel(profileChannelRef.current);
+        profileChannelRef.current = null;
+      }
+    };
+
+    const hydrateSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+
+      const currentSession = data.session ?? null;
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+
+      if (currentSession?.user) {
+        await loadProfile(currentSession.user.id);
+        if (!active) return;
+        subscribeProfile(currentSession.user.id);
+      } else {
+        setProfile(null);
+        clearProfileSubscription();
+      }
+
+      if (active) setLoading(false);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
         setTimeout(() => {
-          loadProfile(session.user.id);
+          if (!active) return;
+          loadProfile(session.user.id).finally(() => active && setLoading(false));
           subscribeProfile(session.user.id);
         }, 0);
       } else {
         setProfile(null);
         lastKickedAtRef.current = null;
-        subscribedUidRef.current = null;
-        if (profileChannelRef.current) {
-          supabase.removeChannel(profileChannelRef.current);
-          profileChannelRef.current = null;
-        }
+        clearProfileSubscription();
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
-    // Don't automatically restore session - user must login each time
-    setLoading(false);
+    hydrateSession().catch(() => active && setLoading(false));
 
     return () => {
+      active = false;
       subscription.unsubscribe();
-      if (profileChannelRef.current) {
-        supabase.removeChannel(profileChannelRef.current);
-        profileChannelRef.current = null;
-      }
+      clearProfileSubscription();
     };
   }, []);
 

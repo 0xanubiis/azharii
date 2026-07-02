@@ -12,8 +12,9 @@ import {
   ShieldCheck,
   Home as HomeIcon,
   Settings,
+  Loader2,
 } from 'lucide-react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
@@ -49,15 +50,22 @@ export function AppSidebar({ onNavigate }: Props) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [channelGroups, setChannelGroups] = useState<ChannelGroup[]>([]);
   const [collegeInfo, setCollegeInfo] = useState({ name: '', department: '' });
+  const [channelsLoading, setChannelsLoading] = useState(true);
 
   useEffect(() => {
-    fetchChannels();
-    fetchCollegeInfo();
-    checkAdminStatus();
+    let active = true;
+
+    const loadSidebar = async () => {
+      setChannelsLoading(true);
+      await Promise.all([fetchChannels(), fetchCollegeInfo(), checkAdminStatus()]);
+      if (active) setChannelsLoading(false);
+    };
+
+    loadSidebar();
 
     if (!profile?.college_id) return;
     const ch = supabase
-      .channel(`sidebar-channels-${profile.id}`)
+      .channel(`sidebar-channels-${profile.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'channels' },
@@ -65,12 +73,16 @@ export function AppSidebar({ onNavigate }: Props) {
       )
       .subscribe();
     return () => {
+      active = false;
       supabase.removeChannel(ch);
     };
   }, [profile?.id, profile?.college_id, profile?.department_id, profile?.location_id, profile?.gender, user?.id]);
 
   const checkAdminStatus = async () => {
-    if (!user) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
     const { data } = await supabase.rpc('has_role', {
       _user_id: user.id,
       _role: 'admin',
@@ -79,7 +91,10 @@ export function AppSidebar({ onNavigate }: Props) {
   };
 
   const fetchCollegeInfo = async () => {
-    if (!profile?.college_id || !profile?.department_id) return;
+    if (!profile?.college_id || !profile?.department_id) {
+      setCollegeInfo({ name: '', department: '' });
+      return;
+    }
     const { data: college } = await supabase
       .from('colleges')
       .select('name_ar')
@@ -101,7 +116,10 @@ export function AppSidebar({ onNavigate }: Props) {
     val ? `${col}.is.null,${col}.eq.${val}` : `${col}.is.null`;
 
   const fetchChannels = async () => {
-    if (!profile?.college_id || !profile?.department_id) return;
+    if (!profile?.college_id || !profile?.department_id) {
+      setChannelGroups([]);
+      return;
+    }
 
     const applyScope = (q: any) =>
       q
@@ -193,7 +211,21 @@ export function AppSidebar({ onNavigate }: Props) {
         </nav>
 
         {/* Channel groups */}
-        {channelGroups.map((group, idx) => (
+        {channelsLoading ? (
+          <div className="space-y-2 px-2" aria-label="جاري تحميل القنوات">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>جاري تحميل القنوات</span>
+            </div>
+            <div className="h-8 rounded-md bg-sidebar-accent/50" />
+            <div className="h-8 rounded-md bg-sidebar-accent/40" />
+            <div className="h-8 rounded-md bg-sidebar-accent/30" />
+          </div>
+        ) : channelGroups.length === 0 ? (
+          <div className="px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+            ستظهر قنوات كليتك وقسمك هنا فور تجهيز حسابك.
+          </div>
+        ) : channelGroups.map((group, idx) => (
           <Collapsible key={idx} defaultOpen>
             <CollapsibleTrigger className="w-full flex items-center justify-between px-2 py-1 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group">
               <span className="font-semibold">{group.title}</span>

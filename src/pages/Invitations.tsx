@@ -135,9 +135,12 @@ export default function Invitations() {
       });
 
     if (error) {
+      const msg = /row-level security|violat/i.test(error.message)
+        ? 'لا يمكن إرسال الدعوة. يُسمح فقط بالدعوات بين المستخدمين من نفس النوع.'
+        : error.message;
       toast({
         title: 'فشل إرسال الدعوة',
-        description: error.message,
+        description: msg,
         variant: 'destructive',
       });
     } else {

@@ -218,6 +218,13 @@ export type Database = {
             referencedRelation: "dm_messages"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "dm_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invitations: {

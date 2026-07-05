@@ -448,6 +448,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      users_same_gender: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "publisher" | "user"

@@ -105,12 +105,20 @@ export default function Invitations() {
     if (!searchQuery.trim() || !user) return;
 
     setLoading(true);
+    // Get current user's gender to only show same-gender peers
+    const { data: me } = await supabase
+      .from('profiles')
+      .select('gender')
+      .eq('id', user.id)
+      .maybeSingle();
+
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
       .ilike('username', `%${searchQuery}%`)
       .neq('id', user.id)
-      .limit(10);
+      .eq('gender', me?.gender ?? 'male')
+      .limit(20);
 
     if (error) {
       toast({
@@ -135,9 +143,12 @@ export default function Invitations() {
       });
 
     if (error) {
+      const msg = /row-level security|violat/i.test(error.message)
+        ? 'لا يمكن إرسال الدعوة. يُسمح فقط بالدعوات بين المستخدمين من نفس النوع.'
+        : error.message;
       toast({
         title: 'فشل إرسال الدعوة',
-        description: error.message,
+        description: msg,
         variant: 'destructive',
       });
     } else {

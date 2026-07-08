@@ -172,6 +172,7 @@ export function AppSidebar({ onNavigate }: Props) {
     { path: '/notifications', label: 'الإشعارات', icon: Bell, badge: unreadCount },
     { path: '/invitations', label: 'الدعوات', icon: Users },
     { path: '/dm', label: 'المحادثات الخاصة', icon: MessageSquare, badge: unreadDMs },
+    { path: '/settings', label: 'الإعدادات', icon: Settings },
     ...(isAdmin ? [{ path: '/admin', label: 'لوحة التحكم', icon: ShieldCheck }] : []),
   ];
 

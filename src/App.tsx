@@ -15,6 +15,9 @@ import DirectMessages from "./pages/DirectMessages";
 import DirectMessageChat from "./pages/DirectMessageChat";
 import Notifications from "./pages/Notifications";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,8 @@ const App = () => (
           <Route path="/splash" element={<Splash />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route element={<ChannelLayout />}>
             <Route path="/home" element={<Home />} />
             <Route path="/channel/:channelId" element={<Channel />} />
@@ -37,6 +42,7 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/dm" element={<DirectMessages />} />
             <Route path="/dm/:dmChannelId" element={<DirectMessageChat />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

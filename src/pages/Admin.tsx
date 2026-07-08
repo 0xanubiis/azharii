@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Building2, Hash, MessageSquare, Bell, BarChart3 } from 'lucide-react';
+import { Users, Building2, Hash, MessageSquare, Bell, BarChart3, ScrollText } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CollegeManagement } from '@/components/admin/CollegeManagement';
 import { ChannelManagement } from '@/components/admin/ChannelManagement';
 import { MessageModeration } from '@/components/admin/MessageModeration';
 import { NotificationManagement } from '@/components/admin/NotificationManagement';
 import { SystemStatistics } from '@/components/admin/SystemStatistics';
+import { ActivityLogs } from '@/components/admin/ActivityLogs';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ const Admin = () => {
     { value: 'channels', label: 'القنوات', icon: Hash },
     { value: 'messages', label: 'الرسائل', icon: MessageSquare },
     { value: 'notifications', label: 'الإشعارات', icon: Bell },
+    { value: 'logs', label: 'السجل', icon: ScrollText },
   ];
 
   return (
@@ -100,6 +102,7 @@ const Admin = () => {
           <TabsContent value="channels"><ChannelManagement /></TabsContent>
           <TabsContent value="messages"><MessageModeration /></TabsContent>
           <TabsContent value="notifications"><NotificationManagement /></TabsContent>
+          <TabsContent value="logs"><ActivityLogs /></TabsContent>
         </Tabs>
       </div>
     </div>

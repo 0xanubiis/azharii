@@ -33,6 +33,8 @@ const App = () => (
           <Route path="/splash" element={<Splash />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route element={<ChannelLayout />}>
             <Route path="/home" element={<Home />} />
             <Route path="/channel/:channelId" element={<Channel />} />

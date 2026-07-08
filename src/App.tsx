@@ -42,6 +42,7 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/dm" element={<DirectMessages />} />
             <Route path="/dm/:dmChannelId" element={<DirectMessageChat />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

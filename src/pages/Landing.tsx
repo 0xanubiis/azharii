@@ -81,8 +81,13 @@ const Landing = () => {
           </div>
         </main>
 
-        <footer className="relative z-10 py-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} أزهري — جميع الحقوق محفوظة
+        <footer className="relative z-10 py-6 text-center text-sm text-muted-foreground space-y-2">
+          <div className="flex items-center justify-center gap-4">
+            <Link to="/privacy" className="hover:text-primary transition-colors">سياسة الخصوصية</Link>
+            <span aria-hidden="true">·</span>
+            <Link to="/terms" className="hover:text-primary transition-colors">شروط الاستخدام</Link>
+          </div>
+          <div>© {new Date().getFullYear()} أزهري — جميع الحقوق محفوظة</div>
         </footer>
       </div>
     </>

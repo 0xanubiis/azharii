@@ -10,6 +10,7 @@ import { ChannelManagement } from '@/components/admin/ChannelManagement';
 import { MessageModeration } from '@/components/admin/MessageModeration';
 import { NotificationManagement } from '@/components/admin/NotificationManagement';
 import { SystemStatistics } from '@/components/admin/SystemStatistics';
+import { ActivityLogs } from '@/components/admin/ActivityLogs';
 
 const Admin = () => {
   const navigate = useNavigate();

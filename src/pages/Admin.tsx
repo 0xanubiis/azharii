@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Building2, Hash, MessageSquare, Bell, BarChart3 } from 'lucide-react';
+import { Users, Building2, Hash, MessageSquare, Bell, BarChart3, ScrollText } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CollegeManagement } from '@/components/admin/CollegeManagement';
 import { ChannelManagement } from '@/components/admin/ChannelManagement';

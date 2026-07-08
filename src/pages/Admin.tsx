@@ -71,6 +71,7 @@ const Admin = () => {
     { value: 'channels', label: 'القنوات', icon: Hash },
     { value: 'messages', label: 'الرسائل', icon: MessageSquare },
     { value: 'notifications', label: 'الإشعارات', icon: Bell },
+    { value: 'logs', label: 'السجل', icon: ScrollText },
   ];
 
   return (

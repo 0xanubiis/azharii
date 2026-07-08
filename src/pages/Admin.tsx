@@ -102,6 +102,7 @@ const Admin = () => {
           <TabsContent value="channels"><ChannelManagement /></TabsContent>
           <TabsContent value="messages"><MessageModeration /></TabsContent>
           <TabsContent value="notifications"><NotificationManagement /></TabsContent>
+          <TabsContent value="logs"><ActivityLogs /></TabsContent>
         </Tabs>
       </div>
     </div>

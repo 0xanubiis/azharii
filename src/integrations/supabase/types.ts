@@ -351,7 +351,11 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           kicked_at: string | null
+          last_name_change_at: string | null
+          last_username_change_at: string | null
           location_id: string | null
+          notify_dm: boolean
+          notify_invitations: boolean
           onboarding_completed: boolean | null
           timeout_until: string | null
           updated_at: string | null
@@ -368,7 +372,11 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
           kicked_at?: string | null
+          last_name_change_at?: string | null
+          last_username_change_at?: string | null
           location_id?: string | null
+          notify_dm?: boolean
+          notify_invitations?: boolean
           onboarding_completed?: boolean | null
           timeout_until?: string | null
           updated_at?: string | null
@@ -385,7 +393,11 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
           kicked_at?: string | null
+          last_name_change_at?: string | null
+          last_username_change_at?: string | null
           location_id?: string | null
+          notify_dm?: boolean
+          notify_invitations?: boolean
           onboarding_completed?: boolean | null
           timeout_until?: string | null
           updated_at?: string | null

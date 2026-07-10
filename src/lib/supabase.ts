@@ -16,6 +16,10 @@ export type Profile = {
   ban_reason: string | null;
   timeout_until: string | null;
   kicked_at: string | null;
+  last_name_change_at: string | null;
+  last_username_change_at: string | null;
+  notify_dm: boolean;
+  notify_invitations: boolean;
   created_at: string;
   updated_at: string;
 };

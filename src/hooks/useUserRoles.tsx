@@ -8,27 +8,46 @@ export const useUserRoles = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchRoles();
-    } else {
+    if (!user) {
       setRoles([]);
       setLoading(false);
+      return;
     }
-  }, [user]);
 
-  const fetchRoles = async () => {
-    if (!user) return;
+    let cancelled = false;
 
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
+    const fetchRoles = async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      if (cancelled) return;
+      setRoles(data ? data.map((r: any) => r.role) : []);
+      setLoading(false);
+    };
 
-    if (data) {
-      setRoles(data.map((r) => r.role));
-    }
-    setLoading(false);
-  };
+    fetchRoles();
+
+    // Realtime: refresh roles the instant admin assigns/removes a role
+    const channel = supabase
+      .channel(`user-roles-${user.id}-${Math.random().toString(36).slice(2, 8)}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchRoles()
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const hasRole = (role: string) => roles.includes(role);
 

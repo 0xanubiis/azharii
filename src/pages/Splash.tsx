@@ -36,8 +36,8 @@ const Splash = () => {
         />
 
         <div className="relative z-10 text-center px-6 animate-in fade-in zoom-in-95 duration-700">
-          <div className="mx-auto mb-8 w-24 h-24 rounded-3xl gradient-brand flex items-center justify-center shadow-elevated">
-            <span className="text-4xl font-bold text-primary-foreground font-serif">أ</span>
+          <div className="mx-auto mb-8 w-24 h-24 rounded-3xl shadow-elevated">
+            <img src="/azhari-logo.png" alt="أزهري" className="w-full h-full rounded-3xl" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif text-balance">
             أزهري — منصة التواصل لطلاب جامعة الأزهر

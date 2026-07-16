@@ -232,9 +232,7 @@ const Auth = () => {
           <div className="absolute inset-0 islamic-pattern opacity-15" aria-hidden="true" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center font-serif text-2xl font-bold">
-                أ
-              </div>
+              <img src="/azhari-logo.png" alt="أزهري" className="w-12 h-12 rounded-2xl" />
               <span className="text-2xl font-bold font-serif">أزهري</span>
             </div>
             <h2 className="text-4xl font-bold mb-4 font-serif leading-tight text-balance">
@@ -269,8 +267,8 @@ const Auth = () => {
           </div>
           <Card className="w-full max-w-md border-border/60 shadow-elevated">
             <CardHeader className="text-center space-y-2">
-              <div className="lg:hidden mx-auto mb-2 w-14 h-14 rounded-2xl gradient-brand flex items-center justify-center text-primary-foreground font-serif text-2xl font-bold">
-                أ
+              <div className="lg:hidden mx-auto mb-2 w-14 h-14">
+                <img src="/azhari-logo.png" alt="أزهري" className="w-full h-full rounded-2xl" />
               </div>
               <CardTitle className="text-2xl font-serif text-primary">أهلًا بك في أزهري</CardTitle>
               <CardDescription>سجّل دخولك أو أنشئ حسابًا جديدًا للبدء</CardDescription>

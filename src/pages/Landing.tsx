@@ -26,9 +26,7 @@ const Landing = () => {
         {/* Header */}
         <header className="relative z-10 flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl gradient-brand flex items-center justify-center shadow-elevated">
-              <span className="text-xl font-bold text-primary-foreground font-serif">أ</span>
-            </div>
+            <img src="/azhari-logo.png" alt="أزهري" className="w-11 h-11 rounded-2xl shadow-elevated" />
             <span className="text-xl font-bold font-serif text-primary">أزهري</span>
           </div>
           <div className="flex items-center gap-2">

@@ -77,11 +77,13 @@ const DirectMessageChat = () => {
         .select('user1_id, user2_id')
         .eq('id', dmChannelId)
         .maybeSingle();
-      if (!channel) {
+      if (!channel || (channel.user1_id !== user.id && channel.user2_id !== user.id)) {
+        setOtherUser(null);
         setLoading(false);
         return;
       }
       const otherUserId = channel.user1_id === user.id ? channel.user2_id : channel.user1_id;
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, username, avatar_url')

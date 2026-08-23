@@ -73,7 +73,7 @@ const Channel = () => {
         .select('*')
         .eq('id', channelId)
         .maybeSingle();
-      if (data) setChannel(data as ChannelData);
+      setChannel(data ? (data as ChannelData) : null);
     } catch (e) {
       console.error('Error fetching channel:', e);
     } finally {

@@ -450,6 +450,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_moderation_list: {
+        Args: never
+        Returns: {
+          ban_reason: string
+          banned_at: string
+          kicked_at: string
+          timeout_until: string
+          user_id: string
+        }[]
+      }
+      can_access_message_file: { Args: { _path: string }; Returns: boolean }
       can_user_post: { Args: { _user_id: string }; Returns: boolean }
       current_profile_scope: {
         Args: never
@@ -466,6 +477,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      my_moderation_status: {
+        Args: never
+        Returns: {
+          ban_reason: string
+          banned_at: string
+          kicked_at: string
+          timeout_until: string
+        }[]
       }
       users_same_gender: { Args: { _a: string; _b: string }; Returns: boolean }
     }

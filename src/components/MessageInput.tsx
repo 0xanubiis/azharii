@@ -66,10 +66,8 @@ export function MessageInput({
         .from('message-files')
         .upload(fileName, selectedFile);
       if (uploadError) throw uploadError;
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('message-files').getPublicUrl(fileName);
-      return { url: publicUrl, type: selectedFile.type };
+      // Bucket is private: store the path and sign it on read.
+      return { url: fileName, type: selectedFile.type };
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({

@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { FileText, Download, Forward, Reply, ChevronDown } from 'lucide-react';
+import { Forward, Reply, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ForwardMessageDialog } from './ForwardMessageDialog';
+import { MessageAttachment } from './MessageAttachment';
 import { getInitials } from '@/lib/initials';
 
 type Message = {
@@ -80,39 +81,10 @@ export function MessageList({ messages, onReply }: MessageListProps) {
       ),
     );
 
-  const renderFile = (fileUrl: string, fileType: string) => {
-    if (fileType.startsWith('image/')) {
-      return (
-        <a
-          href={fileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block mt-2 max-w-md group/img"
-        >
-          <img
-            src={fileUrl}
-            alt="صورة مرفقة من المستخدم"
-            loading="lazy"
-            className="rounded-lg border border-border max-h-80 object-cover group-hover/img:opacity-95 transition"
-          />
-        </a>
-      );
-    }
-    return (
-      <div className="mt-2 flex items-center gap-2 p-2.5 bg-muted rounded-lg max-w-sm border border-border">
-        <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
-        <span className="text-sm flex-1 truncate font-medium">ملف مرفق</span>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="تنزيل الملف"
-          onClick={() => window.open(fileUrl, '_blank')}
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  };
+  const renderFile = (fileRef: string, fileType: string) => (
+    <MessageAttachment fileRef={fileRef} fileType={fileType} />
+  );
+
 
   // Group consecutive same-author messages within window, with day dividers
   const grouped = useMemo(() => {

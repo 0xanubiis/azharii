@@ -70,13 +70,17 @@ export function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const [{ data: profs, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select(`*, colleges (name_ar), departments (name_ar)`)
-          .order('created_at', { ascending: false }),
-        supabase.from('user_roles').select('user_id, role'),
-      ]);
+      const [{ data: profs, error: pErr }, { data: roles, error: rErr }, { data: mods }] =
+        await Promise.all([
+          supabase
+            .from('profiles')
+            .select(
+              `id, full_name, username, gender, college_id, department_id, location_id, avatar_url, onboarding_completed, created_at, colleges (name_ar), departments (name_ar)`,
+            )
+            .order('created_at', { ascending: false }),
+          supabase.from('user_roles').select('user_id, role'),
+          supabase.rpc('admin_moderation_list'),
+        ]);
       if (pErr || rErr) {
         console.error('Error fetching users:', pErr || rErr);
         toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });
@@ -88,13 +92,23 @@ export function UserManagement() {
         arr.push({ role: r.role });
         byUser.set(r.user_id, arr);
       });
-      const merged = (profs ?? []).map((p: any) => ({ ...p, user_roles: byUser.get(p.id) ?? [] }));
+      const modByUser = new Map<string, any>();
+      (mods ?? []).forEach((m: any) => modByUser.set(m.user_id, m));
+      const merged = (profs ?? []).map((p: any) => ({
+        ...p,
+        banned_at: modByUser.get(p.id)?.banned_at ?? null,
+        ban_reason: modByUser.get(p.id)?.ban_reason ?? null,
+        timeout_until: modByUser.get(p.id)?.timeout_until ?? null,
+        kicked_at: modByUser.get(p.id)?.kicked_at ?? null,
+        user_roles: byUser.get(p.id) ?? [],
+      }));
       setUsers(merged as any);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({ variant: 'destructive', title: 'خطأ', description: 'فشل تحميل المستخدمين' });
     }
   };
+
 
   const fetchColleges = async () => {
     const { data } = await supabase.from('colleges').select('id, name_ar').order('name_ar');

@@ -73,13 +73,21 @@ export const ActivityLogs = () => {
     setLoading(true);
     const entries: LogEntry[] = [];
 
-    const { data: recentUsers } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, created_at, banned_at, ban_reason, timeout_until, kicked_at')
-      .order('created_at', { ascending: false })
-      .limit(500);
+    const [{ data: recentUsers }, { data: mods }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, full_name, username, created_at')
+        .order('created_at', { ascending: false })
+        .limit(500),
+      supabase.rpc('admin_moderation_list'),
+    ]);
 
-    (recentUsers ?? []).forEach((p: any) => {
+    const modByUser = new Map<string, any>();
+    (mods ?? []).forEach((m: any) => modByUser.set(m.user_id, m));
+
+    (recentUsers ?? []).forEach((row: any) => {
+      const p = { ...row, ...(modByUser.get(row.id) ?? {}) };
+
       entries.push({
         id: `signup-${p.id}`,
         type: 'signup',

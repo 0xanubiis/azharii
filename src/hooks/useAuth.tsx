@@ -4,6 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { Profile } from '@/lib/supabase';
 import { BanNotificationDialog } from '@/components/ModerationDialog';
 
+const PROFILE_COLUMNS =
+  'id, full_name, username, gender, college_id, department_id, location_id, avatar_url, onboarding_completed, created_at, updated_at, last_name_change_at, last_username_change_at, notify_dm, notify_invitations';
+
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -45,10 +49,9 @@ export const useAuth = () => {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${uid}` },
-        async (payload) => {
-          const next = payload.new as Profile;
-          setProfile(next);
-          await enforceModeration(next);
+        async () => {
+          // Re-read through the privilege-aware path instead of trusting the payload.
+          await loadProfile(uid);
         },
       )
       .subscribe();
@@ -56,12 +59,19 @@ export const useAuth = () => {
   };
 
   const loadProfile = async (uid: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
-    const p = (data as Profile) ?? null;
+    // Moderation columns are admin-only at the database level; the signed-in
+    // user reads their own status through a dedicated secure function.
+    const [{ data }, { data: mod }] = await Promise.all([
+      supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', uid).maybeSingle(),
+      supabase.rpc('my_moderation_status'),
+    ]);
+    const moderation = Array.isArray(mod) ? (mod[0] ?? {}) : (mod ?? {});
+    const p = data ? ({ ...(data as any), ...(moderation as any) } as Profile) : null;
     setProfile(p);
     if (p?.kicked_at) lastKickedAtRef.current = p.kicked_at;
     await enforceModeration(p);
   };
+
 
   useEffect(() => {
     let active = true;

@@ -339,67 +339,93 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_moderation: {
+        Row: {
+          ban_reason: string | null
+          banned_at: string | null
+          created_at: string
+          kicked_at: string | null
+          timeout_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ban_reason?: string | null
+          banned_at?: string | null
+          created_at?: string
+          kicked_at?: string | null
+          timeout_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ban_reason?: string | null
+          banned_at?: string | null
+          created_at?: string
+          kicked_at?: string | null
+          timeout_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
-          ban_reason: string | null
-          banned_at: string | null
           college_id: string | null
           created_at: string | null
           department_id: string | null
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
-          kicked_at: string | null
           last_name_change_at: string | null
           last_username_change_at: string | null
           location_id: string | null
           notify_dm: boolean
           notify_invitations: boolean
           onboarding_completed: boolean | null
-          timeout_until: string | null
           updated_at: string | null
           username: string
         }
         Insert: {
           avatar_url?: string | null
-          ban_reason?: string | null
-          banned_at?: string | null
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
-          kicked_at?: string | null
           last_name_change_at?: string | null
           last_username_change_at?: string | null
           location_id?: string | null
           notify_dm?: boolean
           notify_invitations?: boolean
           onboarding_completed?: boolean | null
-          timeout_until?: string | null
           updated_at?: string | null
           username: string
         }
         Update: {
           avatar_url?: string | null
-          ban_reason?: string | null
-          banned_at?: string | null
           college_id?: string | null
           created_at?: string | null
           department_id?: string | null
           full_name?: string
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
-          kicked_at?: string | null
           last_name_change_at?: string | null
           last_username_change_at?: string | null
           location_id?: string | null
           notify_dm?: boolean
           notify_invitations?: boolean
           onboarding_completed?: boolean | null
-          timeout_until?: string | null
           updated_at?: string | null
           username?: string
         }

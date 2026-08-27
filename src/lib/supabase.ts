@@ -12,10 +12,6 @@ export type Profile = {
   location_id: string | null;
   avatar_url: string | null;
   onboarding_completed: boolean;
-  banned_at: string | null;
-  ban_reason: string | null;
-  timeout_until: string | null;
-  kicked_at: string | null;
   last_name_change_at: string | null;
   last_username_change_at: string | null;
   notify_dm: boolean;

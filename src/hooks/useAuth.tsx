@@ -19,18 +19,25 @@ export const useAuth = () => {
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [banReason, setBanReason] = useState<string | undefined>();
 
-  const enforceModeration = async (p: Profile | null) => {
-    if (!p) return false;
+  type ModerationStatus = {
+    banned_at?: string | null;
+    ban_reason?: string | null;
+    timeout_until?: string | null;
+    kicked_at?: string | null;
+  };
+
+  const enforceModeration = async (m: ModerationStatus | null) => {
+    if (!m) return false;
     // Banned: show dialog and force sign out
-    if (p.banned_at) {
-      setBanReason(p.ban_reason || undefined);
+    if (m.banned_at) {
+      setBanReason(m.ban_reason || undefined);
       setShowBanDialog(true);
       await supabase.auth.signOut();
       return true;
     }
     // Kicked: sign out once per kicked_at value
-    if (p.kicked_at && p.kicked_at !== lastKickedAtRef.current) {
-      lastKickedAtRef.current = p.kicked_at;
+    if (m.kicked_at && m.kicked_at !== lastKickedAtRef.current) {
+      lastKickedAtRef.current = m.kicked_at;
       await supabase.auth.signOut();
       return true;
     }
@@ -54,23 +61,31 @@ export const useAuth = () => {
           await loadProfile(uid);
         },
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profile_moderation', filter: `user_id=eq.${uid}` },
+        async () => {
+          await loadProfile(uid);
+        },
+      )
       .subscribe();
     profileChannelRef.current = ch;
   };
 
   const loadProfile = async (uid: string) => {
-    // Moderation columns are admin-only at the database level; the signed-in
+    // Moderation data lives in a separate admin-only table; the signed-in
     // user reads their own status through a dedicated secure function.
     const [{ data }, { data: mod }] = await Promise.all([
       supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', uid).maybeSingle(),
       supabase.rpc('my_moderation_status'),
     ]);
-    const moderation = Array.isArray(mod) ? (mod[0] ?? {}) : (mod ?? {});
-    const p = data ? ({ ...(data as any), ...(moderation as any) } as Profile) : null;
-    setProfile(p);
-    if (p?.kicked_at) lastKickedAtRef.current = p.kicked_at;
-    await enforceModeration(p);
+    const moderation: ModerationStatus =
+      (Array.isArray(mod) ? (mod[0] ?? {}) : (mod ?? {})) as ModerationStatus;
+    setProfile(data ? ((data as any) as Profile) : null);
+    if (moderation.kicked_at) lastKickedAtRef.current = moderation.kicked_at;
+    await enforceModeration(moderation);
   };
+
 
 
   useEffect(() => {

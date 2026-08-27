@@ -138,7 +138,10 @@ export function UserManagement() {
   };
 
   const patchProfile = async (userId: string, patch: Record<string, any>, successMsg: string) => {
-    const { error } = await (supabase.from('profiles') as any).update(patch).eq('id', userId);
+    const { error } = await (supabase.from('profile_moderation') as any).upsert(
+      { user_id: userId, ...patch },
+      { onConflict: 'user_id' },
+    );
     if (error) {
       toast({ variant: 'destructive', title: 'خطأ', description: error.message });
       return;
@@ -146,6 +149,7 @@ export function UserManagement() {
     toast({ title: 'تم', description: successMsg });
     fetchUsers();
   };
+
 
   const banUser = (u: User) => {
     setModerationDialog({ open: true, type: 'ban', user: u });

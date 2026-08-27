@@ -64,7 +64,7 @@ BEGIN
   FROM information_schema.columns
   WHERE table_schema = 'public' AND table_name = 'profiles'
     AND column_name IN ('banned_at', 'ban_reason', 'timeout_until', 'kicked_at');
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('profiles', 'moderation columns removed from profiles', '0', n::text, n = 0);
 
   -- anon must not read profiles
@@ -77,7 +77,7 @@ BEGIN
     ok := true; err := 'denied: ' || SQLERRM;
   END;
   RESET ROLE;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('profiles', 'anon cannot read profiles', 'denied or 0 rows', err, ok);
 
   -- authenticated student may read public columns of peers
@@ -89,7 +89,7 @@ BEGIN
     ok := n = 1; err := n::text;
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('profiles', 'student can read own public profile row', '1', err, ok);
 
   -- but NOT the moderation table of other users
@@ -99,7 +99,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' rows';
   EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('profile_moderation', 'student cannot read others moderation rows', '0 rows', err, ok);
 
   -- a student cannot write moderation data (self-unban / self-ban of others)
@@ -109,7 +109,7 @@ BEGIN
     ok := false; err := 'insert succeeded';
   EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('profile_moderation', 'student cannot write moderation rows', 'denied', err, ok);
 
   -- ======================= CHANNELS =======================================
@@ -128,7 +128,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' out-of-scope channels';
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('channels', 'student sees only in-scope channels', '0 out-of-scope', err, ok);
 
   -- ======================= MESSAGES ======================================
@@ -140,7 +140,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' messages from invisible channels';
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('messages', 'student sees no messages from invisible channels', '0', err, ok);
 
   -- ======================= DMs ===========================================
@@ -152,7 +152,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' foreign dm channels';
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('dm_channels', 'student sees only own DM channels', '0 foreign', err, ok);
 
   BEGIN
@@ -163,7 +163,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' foreign dm messages';
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('dm_messages', 'student sees only DM messages of own channels', '0 foreign', err, ok);
 
   -- opposite-gender DM creation must be blocked
@@ -176,7 +176,7 @@ BEGIN
     ok := false; err := 'insert succeeded';
   EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('dm_channels', 'cross-gender DM creation denied', 'denied', err, ok);
 
   -- ======================= STORAGE: message-files =========================
@@ -197,7 +197,7 @@ BEGIN
     ok := (n = 0); err := n::text || ' unauthorized objects';
   EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
   END;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('storage.message-files', 'student cannot list unrelated files', '0', err, ok);
 
   RESET ROLE;
@@ -205,11 +205,11 @@ BEGIN
 
   -- bucket must be private
   SELECT count(*) INTO n FROM storage.buckets WHERE id = 'message-files' AND public = false;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('storage.message-files', 'bucket is private', '1', n::text, n = 1);
 
   SELECT count(*) INTO n FROM storage.buckets WHERE id = 'avatars' AND public = false;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('storage.avatars', 'bucket is private', '1', n::text, n = 1);
 
   -- anon must not list message files
@@ -220,7 +220,7 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied: ' || SQLERRM;
   END;
   RESET ROLE;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('storage.message-files', 'anon cannot list files', 'denied or 0 rows', err, ok);
 
   -- ======================= ADMIN =========================================
@@ -232,7 +232,7 @@ BEGIN
       ok := true; err := n::text || ' rows readable';
     EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
     END;
-    INSERT INTO rls_check_results VALUES
+    res := res || jsonb_build_array(jsonb_build_array(
       ('profile_moderation', 'admin can read moderation rows', 'readable', err, ok);
 
     BEGIN
@@ -240,7 +240,7 @@ BEGIN
       ok := true; err := n::text || ' rows';
     EXCEPTION WHEN OTHERS THEN ok := false; err := 'error: ' || SQLERRM;
     END;
-    INSERT INTO rls_check_results VALUES
+    res := res || jsonb_build_array(jsonb_build_array(
       ('rpc', 'admin_moderation_list works for admin', 'ok', err, ok);
 
     RESET ROLE;
@@ -252,7 +252,7 @@ BEGIN
   FROM pg_tables t
   JOIN pg_class c ON c.relname = t.tablename AND c.relnamespace = 'public'::regnamespace
   WHERE t.schemaname = 'public' AND c.relrowsecurity = false;
-  INSERT INTO rls_check_results VALUES
+  res := res || jsonb_build_array(jsonb_build_array(
     ('schema', 'all public tables have RLS enabled', '0 without RLS', n::text, n = 0);
 END $$;
 

@@ -135,6 +135,13 @@ BEGIN
   res := res || jsonb_build_array(jsonb_build_array(
     'storage.message-files','student cannot list unrelated files','0',err,ok));
 
+  BEGIN
+    EXECUTE $q$SELECT count(*) FROM storage.objects WHERE bucket_id = 'avatars'$q$ INTO n;
+    ok := true; err := n::text || ' avatars visible';
+  EXCEPTION WHEN OTHERS THEN ok := false; err := 'denied'; END;
+  res := res || jsonb_build_array(jsonb_build_array(
+    'storage.avatars','student can view avatars','readable',err,ok));
+
   RESET ROLE;
   PERFORM set_config('request.jwt.claims','',true);
 
@@ -154,6 +161,24 @@ BEGIN
   res := res || jsonb_build_array(jsonb_build_array(
     'storage.message-files','anon cannot list files','denied or 0 rows',err,ok));
 
+  SET LOCAL ROLE anon;
+  BEGIN
+    EXECUTE $q$SELECT count(*) FROM storage.objects WHERE bucket_id = 'avatars'$q$ INTO n;
+    ok := (n = 0); err := n::text || ' rows';
+  EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied'; END;
+  RESET ROLE;
+  res := res || jsonb_build_array(jsonb_build_array(
+    'storage.avatars','anon cannot list avatars','denied or 0 rows',err,ok));
+
+  SET LOCAL ROLE anon;
+  BEGIN
+    EXECUTE 'SELECT count(*) FROM public.messages' INTO n;
+    ok := (n = 0); err := n::text || ' rows';
+  EXCEPTION WHEN OTHERS THEN ok := true; err := 'denied'; END;
+  RESET ROLE;
+  res := res || jsonb_build_array(jsonb_build_array(
+    'messages','anon cannot read messages','denied or 0 rows',err,ok));
+
   IF admin_id IS NOT NULL THEN
     PERFORM set_config('request.jwt.claims',
       json_build_object('sub',admin_id,'role','authenticated')::text, true);
@@ -171,6 +196,20 @@ BEGIN
     EXCEPTION WHEN OTHERS THEN ok := false; err := 'error'; END;
     res := res || jsonb_build_array(jsonb_build_array(
       'rpc','admin_moderation_list works for admin','ok',err,ok));
+
+    BEGIN
+      EXECUTE 'SELECT count(*) FROM public.channels' INTO n;
+      ok := (n > 0); err := n::text || ' channels';
+    EXCEPTION WHEN OTHERS THEN ok := false; err := 'error'; END;
+    res := res || jsonb_build_array(jsonb_build_array(
+      'channels','admin sees all channels','all',err,ok));
+
+    BEGIN
+      EXECUTE $q$SELECT count(*) FROM storage.objects WHERE bucket_id = 'message-files'$q$ INTO n;
+      ok := true; err := n::text || ' files';
+    EXCEPTION WHEN OTHERS THEN ok := false; err := 'denied'; END;
+    res := res || jsonb_build_array(jsonb_build_array(
+      'storage.message-files','admin can list all files','readable',err,ok));
     RESET ROLE;
     PERFORM set_config('request.jwt.claims','',true);
   END IF;

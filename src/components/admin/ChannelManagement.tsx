@@ -69,6 +69,7 @@ export function ChannelManagement() {
       is_official: newChannel.is_official,
       college_id: newChannel.college_id || null,
       department_id: newChannel.department_id || null,
+      gender: (newChannel.gender || null) as 'male' | 'female' | null,
     };
 
     const { error } = await supabase.from('channels').insert(channelData);
@@ -93,6 +94,7 @@ export function ChannelManagement() {
       is_official: false,
       college_id: '',
       department_id: '',
+      gender: '',
     });
     setDialogOpen(false);
     fetchData();
@@ -208,6 +210,24 @@ export function ChannelManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <label className="text-sm font-medium">الجنس</label>
+                <Select
+                  value={newChannel.gender}
+                  onValueChange={(value) =>
+                    setNewChannel({ ...newChannel, gender: value === 'all' ? '' : value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="مشتركة (الجميع)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">مشتركة (الجميع)</SelectItem>
+                    <SelectItem value="male">طلاب فقط</SelectItem>
+                    <SelectItem value="female">طالبات فقط</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">قناة رسمية</label>
                 <Switch
@@ -240,6 +260,8 @@ export function ChannelManagement() {
                   {channel.is_official && (
                     <Badge variant="default">رسمية</Badge>
                   )}
+                  {channel.gender === 'male' && <Badge variant="outline">طلاب</Badge>}
+                  {channel.gender === 'female' && <Badge variant="outline">طالبات</Badge>}
                   {channel.colleges && (
                     <Badge variant="secondary">{channel.colleges.name_ar}</Badge>
                   )}

@@ -15,6 +15,7 @@ type Channel = {
   name_ar: string;
   type: string;
   is_official: boolean;
+  gender: 'male' | 'female' | null;
   colleges: { name_ar: string } | null;
   departments: { name_ar: string } | null;
 };
@@ -31,6 +32,7 @@ export function ChannelManagement() {
     is_official: false,
     college_id: '',
     department_id: '',
+    gender: '',
   });
   const { toast } = useToast();
 

@@ -52,6 +52,9 @@ export function MessageModeration() {
   const [collegeId, setCollegeId] = useState('');
   const [departmentId, setDepartmentId] = useState('all');
   const [gender, setGender] = useState<'all' | 'male' | 'female'>('all');
+  const [searchField, setSearchField] = useState<'all' | 'content' | 'user' | 'channel'>('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   useEffect(() => {
@@ -117,13 +120,29 @@ export function MessageModeration() {
       if (departmentId !== 'all' && msgDept !== departmentId) return false;
       const msgGender = m.channels?.gender || m.profiles?.gender;
       if (gender !== 'all' && msgGender !== gender) return false;
+
+      const created = new Date(m.created_at).getTime();
+      if (fromDate && created < new Date(`${fromDate}T00:00:00`).getTime()) return false;
+      if (toDate && created > new Date(`${toDate}T23:59:59`).getTime()) return false;
+
       if (q) {
-        const hay = `${m.content || ''} ${m.profiles?.full_name || ''} ${m.profiles?.username || ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+        const content = (m.content || '').toLowerCase();
+        const user = `${m.profiles?.full_name || ''} ${m.profiles?.username || ''}`.toLowerCase();
+        const channel = (m.channels?.name_ar || '').toLowerCase();
+        const hay =
+          searchField === 'content'
+            ? content
+            : searchField === 'user'
+              ? user
+              : searchField === 'channel'
+                ? channel
+                : `${content} ${user} ${channel}`;
+        const terms = q.split(/\s+/).filter(Boolean);
+        if (!terms.every((t) => hay.includes(t))) return false;
       }
       return true;
     });
-  }, [messages, search, collegeId, departmentId, gender]);
+  }, [messages, search, searchField, departmentId, gender, fromDate, toDate]);
 
   if (loading) {
     return (
@@ -142,17 +161,27 @@ export function MessageModeration() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 mb-3">
         <div className="relative">
           <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="بحث في المحتوى..."
+            placeholder="بحث بالكلمات المفتاحية..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pr-8"
+            disabled={!collegeId}
           />
         </div>
-        <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setDepartmentId('all'); setGender('all'); }}>
+        <Select value={searchField} onValueChange={(v: any) => setSearchField(v)} disabled={!collegeId}>
+          <SelectTrigger><SelectValue placeholder="نطاق البحث" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">بحث في الكل</SelectItem>
+            <SelectItem value="content">محتوى الرسالة</SelectItem>
+            <SelectItem value="user">اسم المستخدم</SelectItem>
+            <SelectItem value="channel">اسم القناة</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setDepartmentId('all'); setGender('all'); setSearch(''); setFromDate(''); setToDate(''); }}>
           <SelectTrigger><SelectValue placeholder="اختر الكلية" /></SelectTrigger>
           <SelectContent>
             {colleges.map((c) => <SelectItem key={c.id} value={c.id}>{c.name_ar}</SelectItem>)}
@@ -173,6 +202,46 @@ export function MessageModeration() {
             <SelectItem value="female">طالبات فقط</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">من تاريخ</label>
+          <Input
+            type="date"
+            value={fromDate}
+            max={toDate || undefined}
+            onChange={(e) => setFromDate(e.target.value)}
+            disabled={!collegeId}
+            className="w-[10.5rem]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">إلى تاريخ</label>
+          <Input
+            type="date"
+            value={toDate}
+            min={fromDate || undefined}
+            onChange={(e) => setToDate(e.target.value)}
+            disabled={!collegeId}
+            className="w-[10.5rem]"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!collegeId}
+          onClick={() => {
+            setSearch('');
+            setSearchField('all');
+            setDepartmentId('all');
+            setGender('all');
+            setFromDate('');
+            setToDate('');
+          }}
+        >
+          مسح الفلاتر
+        </Button>
       </div>
 
       {!collegeId ? (

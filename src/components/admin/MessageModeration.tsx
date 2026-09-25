@@ -48,27 +48,37 @@ export function MessageModeration() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
-  const [collegeId, setCollegeId] = useState('all');
+  const [collegeId, setCollegeId] = useState('');
   const [departmentId, setDepartmentId] = useState('all');
   const [gender, setGender] = useState<'all' | 'male' | 'female'>('all');
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchMessages(), fetchColleges(), fetchDepartments()]).finally(() =>
-      setLoading(false),
-    );
+    Promise.all([fetchColleges(), fetchDepartments()]).finally(() => setLoading(false));
   }, []);
 
-  const fetchMessages = async () => {
+  useEffect(() => {
+    if (!collegeId) {
+      setMessages([]);
+      return;
+    }
+    fetchMessages(collegeId);
+  }, [collegeId]);
+
+  const fetchMessages = async (college: string) => {
+    setLoadingMessages(true);
     const { data } = await supabase
       .from('messages')
       .select(
         `id, content, created_at, file_url, channel_id, user_id,
-         channels(name_ar, department_id, college_id),
+         channels!inner(name_ar, department_id, college_id),
          profiles(full_name, username, gender, college_id, department_id)`,
       )
+      .eq('channels.college_id', college)
       .order('created_at', { ascending: false })
       .limit(500);
-    if (data) setMessages(data as any);
+    setMessages((data as any) || []);
+    setLoadingMessages(false);
   };
 
   const fetchColleges = async () => {

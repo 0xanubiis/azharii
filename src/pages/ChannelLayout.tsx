@@ -61,7 +61,7 @@ const ChannelLayout = () => {
               className="absolute inset-0 bg-background/80 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
-            <aside className="absolute inset-y-0 right-0 z-10 flex h-dvh w-[min(86vw,320px)] flex-col border-l border-sidebar-border bg-sidebar shadow-elevated">
+            <aside className="animate-drawer-in absolute inset-y-0 right-0 z-10 flex h-dvh w-[min(86vw,320px)] flex-col border-l border-sidebar-border bg-sidebar shadow-elevated">
               <h2 id="mobile-sidebar-title" className="sr-only">القائمة الجانبية</h2>
               <p className="sr-only">التنقل بين الأقسام والقنوات</p>
               <Button
@@ -99,7 +99,9 @@ const ChannelLayout = () => {
           </header>
 
           <main className="flex-1 min-h-0 overflow-hidden">
-            <Outlet />
+            <div className="route-enter h-full">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

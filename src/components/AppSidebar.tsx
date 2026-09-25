@@ -196,7 +196,7 @@ export function AppSidebar({ onNavigate }: Props) {
             <button
               key={path}
               onClick={() => go(path)}
-              className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-sm font-medium transition-colors group ${
+              className={`nav-row w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-sm font-medium transition-[color,background-color,transform] duration-150 ease-out group active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none ${
                 isActive(path)
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
@@ -220,9 +220,9 @@ export function AppSidebar({ onNavigate }: Props) {
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               <span>جاري تحميل القنوات</span>
             </div>
-            <div className="h-8 rounded-md bg-sidebar-accent/50" />
-            <div className="h-8 rounded-md bg-sidebar-accent/40" />
-            <div className="h-8 rounded-md bg-sidebar-accent/30" />
+            <div className="h-8 rounded-md bg-sidebar-accent/50 skeleton-shimmer" />
+            <div className="h-8 rounded-md bg-sidebar-accent/40 skeleton-shimmer [animation-delay:120ms]" />
+            <div className="h-8 rounded-md bg-sidebar-accent/30 skeleton-shimmer [animation-delay:240ms]" />
           </div>
         ) : channelGroups.length === 0 ? (
           <div className="px-3 py-2 text-xs leading-relaxed text-muted-foreground">
@@ -241,7 +241,7 @@ export function AppSidebar({ onNavigate }: Props) {
                   <button
                     key={channel.id}
                     onClick={() => go(`/channel/${channel.id}`)}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors ${
+                    className={`nav-row w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-[color,background-color,transform] duration-150 ease-out active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none ${
                       active
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'

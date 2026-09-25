@@ -24,7 +24,7 @@ const Landing = () => {
         <div className="absolute inset-0 islamic-pattern text-primary opacity-[0.05]" aria-hidden="true" />
 
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto">
+        <header className="landing-reveal relative z-10 flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <img src="/azhari-logo.png" alt="أزهري" className="w-11 h-11 rounded-2xl shadow-elevated" />
             <span className="text-xl font-bold font-serif text-primary">أزهري</span>
@@ -39,19 +39,19 @@ const Landing = () => {
 
         {/* Hero */}
         <main className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-8 md:pt-16 pb-12 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary mb-6">
+          <div className="landing-reveal inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary mb-6 [animation-delay:60ms]">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             منصة رسمية لطلاب جامعة الأزهر
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 font-serif leading-tight text-balance text-primary">
+          <h1 className="landing-reveal text-4xl md:text-6xl font-bold mb-6 font-serif leading-tight text-balance text-primary [animation-delay:110ms]">
             تواصل مع زملائك في الكلية والقسم
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 text-balance leading-relaxed">
+          <p className="landing-reveal text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 text-balance leading-relaxed [animation-delay:160ms]">
             قنوات كليتك وقسمك، رسائل خاصة، إعلانات رسمية، ومشاركة الملفات الدراسية — في مكان واحد آمن ومخصص لك.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
+          <div className="landing-reveal flex flex-col sm:flex-row items-center justify-center gap-3 mb-16 [animation-delay:210ms]">
             <Button asChild size="lg" className="w-full sm:w-auto min-w-[180px] text-base">
               <Link to="/auth?mode=signup">إنشاء حساب جديد</Link>
             </Button>
@@ -68,8 +68,8 @@ const Landing = () => {
               { icon: Users, title: 'زملاء القسم', desc: 'تواصل مع زملائك في نفس الكلية والقسم.' },
               { icon: BookOpen, title: 'ملفات دراسية', desc: 'شارك الملخصات والمحاضرات بسهولة.' },
             ].map(({ icon: Icon, title, desc }, i) => (
-              <div key={i} className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+              <div key={i} className="landing-card landing-reveal group rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 shadow-sm transition-[transform,border-color,box-shadow,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-primary/30 hover:shadow-elevated active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none" style={{ animationDelay: `${260 + i * 55}ms` }}>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3 transition-[transform,background-color] duration-200 group-hover:scale-110 group-hover:bg-primary/15 motion-reduce:transform-none motion-reduce:transition-none">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-bold font-serif mb-1">{title}</h3>

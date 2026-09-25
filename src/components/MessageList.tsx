@@ -200,7 +200,7 @@ function MessageRow({
 
   return (
     <div
-      className={`group relative flex gap-3 px-2 py-0.5 rounded-md hover:bg-hover transition-colors ${
+      className={`message-enter group relative flex gap-3 px-2 py-0.5 rounded-md hover:bg-hover transition-[background-color,transform] duration-150 ease-out hover:translate-x-0.5 active:scale-[0.995] motion-reduce:transform-none motion-reduce:transition-none ${
         grouped ? '' : 'mt-3'
       }`}
     >

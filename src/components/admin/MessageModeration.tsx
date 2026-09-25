@@ -27,6 +27,7 @@ type Message = {
     name_ar: string;
     department_id: string | null;
     college_id: string | null;
+    gender: 'male' | 'female' | null;
   } | null;
   profiles: {
     full_name: string;
@@ -71,7 +72,7 @@ export function MessageModeration() {
       .from('messages')
       .select(
         `id, content, created_at, file_url, channel_id, user_id,
-         channels!inner(name_ar, department_id, college_id),
+         channels!inner(name_ar, department_id, college_id, gender),
          profiles(full_name, username, gender, college_id, department_id)`,
       )
       .eq('channels.college_id', college)
@@ -105,18 +106,17 @@ export function MessageModeration() {
   };
 
   const visibleDepartments = useMemo(
-    () => (collegeId === 'all' ? departments : departments.filter((d) => d.college_id === collegeId)),
+    () => (collegeId ? departments.filter((d) => d.college_id === collegeId) : []),
     [departments, collegeId],
   );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return messages.filter((m) => {
-      const msgCollege = m.channels?.college_id || m.profiles?.college_id;
       const msgDept = m.channels?.department_id || m.profiles?.department_id;
-      if (collegeId !== 'all' && msgCollege !== collegeId) return false;
       if (departmentId !== 'all' && msgDept !== departmentId) return false;
-      if (gender !== 'all' && m.profiles?.gender !== gender) return false;
+      const msgGender = m.channels?.gender || m.profiles?.gender;
+      if (gender !== 'all' && msgGender !== gender) return false;
       if (q) {
         const hay = `${m.content || ''} ${m.profiles?.full_name || ''} ${m.profiles?.username || ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -138,7 +138,7 @@ export function MessageModeration() {
       <div className="mb-4">
         <h2 className="text-xl font-bold mb-1">إدارة الرسائل</h2>
         <p className="text-sm text-muted-foreground">
-          مراقبة الرسائل في كل الأقسام (طلاب وطالبات) — مع إمكانية الحذف.
+          اختر الكلية أولاً لعرض رسائلها (طلاب وطالبات معاً)، ثم صفِّ حسب القسم أو النوع.
         </p>
       </div>
 
@@ -152,30 +152,39 @@ export function MessageModeration() {
             className="pr-8"
           />
         </div>
-        <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setDepartmentId('all'); }}>
-          <SelectTrigger><SelectValue placeholder="الكلية" /></SelectTrigger>
+        <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setDepartmentId('all'); setGender('all'); }}>
+          <SelectTrigger><SelectValue placeholder="اختر الكلية" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">كل الكليات</SelectItem>
             {colleges.map((c) => <SelectItem key={c.id} value={c.id}>{c.name_ar}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={departmentId} onValueChange={setDepartmentId}>
+        <Select value={departmentId} onValueChange={setDepartmentId} disabled={!collegeId}>
           <SelectTrigger><SelectValue placeholder="القسم" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">كل الأقسام</SelectItem>
             {visibleDepartments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name_ar}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={gender} onValueChange={(v: any) => setGender(v)}>
+        <Select value={gender} onValueChange={(v: any) => setGender(v)} disabled={!collegeId}>
           <SelectTrigger><SelectValue placeholder="النوع" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="male">طلاب</SelectItem>
-            <SelectItem value="female">طالبات</SelectItem>
+            <SelectItem value="all">طلاب وطالبات</SelectItem>
+            <SelectItem value="male">طلاب فقط</SelectItem>
+            <SelectItem value="female">طالبات فقط</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
+      {!collegeId ? (
+        <p className="text-center text-sm text-muted-foreground py-10">
+          اختر كلية من القائمة أعلاه لعرض الرسائل.
+        </p>
+      ) : loadingMessages ? (
+        <div className="flex justify-center py-10">
+          <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+      <>
       <p className="text-xs text-muted-foreground mb-3">إجمالي: {filtered.length} رسالة</p>
 
       <div className="space-y-3">
@@ -212,6 +221,8 @@ export function MessageModeration() {
           </div>
         ))}
       </div>
+      </>
+      )}
     </Card>
   );
 }

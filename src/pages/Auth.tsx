@@ -257,14 +257,15 @@ const Auth = () => {
           </ul>
         </aside>
 
-        <section className="flex items-center justify-center p-4 md:p-8 relative">
-          <div className="absolute top-4 left-4 flex items-center gap-2">
+        <section className="flex flex-col p-4 md:p-8">
+          <header className="flex items-center justify-between gap-2 w-full mb-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2">
               <ArrowRight className="h-4 w-4" />
-              <span className="hidden sm:inline">الرئيسية</span>
+              <span>الرئيسية</span>
             </Button>
             <ThemeToggle />
-          </div>
+          </header>
+          <div className="flex-1 flex items-center justify-center">
           <Card className="w-full max-w-md border-border/60 shadow-elevated">
             <CardHeader className="text-center space-y-2">
               <div className="lg:hidden mx-auto mb-2 w-14 h-14">
